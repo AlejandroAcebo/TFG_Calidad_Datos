@@ -1,0 +1,34 @@
+# Archivos de Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Archivos de configuración de PyCharm
+.idea/
+
+# Entornos virtuales
+venv/
+env/
+*.env
+*.venv
+
+# Archivos generados por el sistema
+*.log
+
+# Archivos de test temporales
+*.tox
+*.coverage
+*.hypothesis/
+*.pytest_cache/
+
+# Archivos de base de datos locales
+*.sqlite3
+
+# Directorios de compilación y distribución
+build/
+dist/
+*.egg-info/
+
+# Archivos de configuración de IDE o editor de texto
+*.iml
+*.idea/
