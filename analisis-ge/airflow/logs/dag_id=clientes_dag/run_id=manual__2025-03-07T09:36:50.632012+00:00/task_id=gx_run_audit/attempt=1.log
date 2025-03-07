@@ -1,0 +1,69 @@
+[2025-03-07T09:36:53.619+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-03-07T09:36:53.642+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-07T09:36:50.632012+00:00 [queued]>
+[2025-03-07T09:36:53.649+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-07T09:36:50.632012+00:00 [queued]>
+[2025-03-07T09:36:53.650+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 1
+[2025-03-07T09:36:53.661+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): gx_run_audit> on 2025-03-07 09:36:50.632012+00:00
+[2025-03-07T09:36:53.668+0000] {standard_task_runner.py:63} INFO - Started process 217 to run task
+[2025-03-07T09:36:53.671+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'clientes_dag', 'gx_run_audit', 'manual__2025-03-07T09:36:50.632012+00:00', '--job-id', '5', '--raw', '--subdir', 'DAGS_FOLDER/clientes_dag.py', '--cfg-path', '/tmp/tmp94ldgbwf']
+[2025-03-07T09:36:53.674+0000] {standard_task_runner.py:91} INFO - Job 5: Subtask gx_run_audit
+[2025-03-07T09:36:53.718+0000] {task_command.py:426} INFO - Running <TaskInstance: clientes_dag.gx_run_audit manual__2025-03-07T09:36:50.632012+00:00 [running]> on host 658b8f6e1c0c
+[2025-03-07T09:36:54.054+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='clientes_dag' AIRFLOW_CTX_TASK_ID='gx_run_audit' AIRFLOW_CTX_EXECUTION_DATE='2025-03-07T09:36:50.632012+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-03-07T09:36:50.632012+00:00'
+[2025-03-07T09:36:54.055+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-03-07T09:36:54.084+0000] {file_data_context.py:209} INFO - FileDataContext loading fluent config
+[2025-03-07T09:36:54.086+0000] {config.py:191} INFO - Loading 'datasources' ->
+[]
+[2025-03-07T09:36:54.110+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-03-07T09:36:54.111+0000] {taskinstance.py:2890} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/clientes_dag.py", line 8, in run_gx_checkpoint
+    context.checkpoints.get("Checkpoint").run()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/great_expectations/core/factory/checkpoint_factory.py", line 103, in get
+    return self._get(key=key)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/great_expectations/core/factory/checkpoint_factory.py", line 112, in _get
+    checkpoint = self._store.get(key=key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/great_expectations/data_context/store/store.py", line 235, in get
+    return self.deserialize(value)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/great_expectations/data_context/store/checkpoint_store.py", line 79, in deserialize
+    return Checkpoint.parse_raw(value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/pydantic/v1/main.py", line 549, in parse_raw
+    return cls.parse_obj(obj)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/pydantic/v1/main.py", line 526, in parse_obj
+    return cls(**obj)
+           ^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/pydantic/v1/main.py", line 341, in __init__
+    raise validation_error
+pydantic.v1.error_wrappers.ValidationError: 2 validation errors for Checkpoint
+validation_definitions -> data
+  Could not find datasource named 'pg_datasource'. (type=value_error)
+validation_definitions -> suite
+  Could not find suite with name: Suite and id: 861e9571-fae6-498b-bd45-0f5354d14170 (type=value_error)
+[2025-03-07T09:36:54.122+0000] {taskinstance.py:1205} INFO - Marking task as FAILED. dag_id=clientes_dag, task_id=gx_run_audit, execution_date=20250307T093650, start_date=20250307T093653, end_date=20250307T093654
+[2025-03-07T09:36:54.136+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 5 for task gx_run_audit (2 validation errors for Checkpoint
+validation_definitions -> data
+  Could not find datasource named 'pg_datasource'. (type=value_error)
+validation_definitions -> suite
+  Could not find suite with name: Suite and id: 861e9571-fae6-498b-bd45-0f5354d14170 (type=value_error); 217)
+[2025-03-07T09:36:54.178+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 1
+[2025-03-07T09:36:54.193+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-03-07T09:36:54.196+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

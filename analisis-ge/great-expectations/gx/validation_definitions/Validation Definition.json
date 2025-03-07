@@ -1,0 +1,22 @@
+{
+  "data": {
+    "asset": {
+      "id": "ec291eef-8caf-4218-bb6d-1d5e9e9a42df",
+      "name": "pedidos_data"
+    },
+    "batch_definition": {
+      "id": "04d402e4-8971-495d-baf5-a0e27ab8e886",
+      "name": "BD"
+    },
+    "datasource": {
+      "id": "7cb9b092-1785-435f-b046-6ef0cddb5120",
+      "name": "pg_datasource"
+    }
+  },
+  "id": "91dcfb64-7af0-41b3-b607-81ac95d141c4",
+  "name": "Validation Definition",
+  "suite": {
+    "id": "5190e577-2af1-438a-b4fb-dbc72efbc05d",
+    "name": "Suite"
+  }
+}

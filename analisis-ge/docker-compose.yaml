@@ -1,0 +1,169 @@
+version: '3'
+
+
+x-common:
+  &common
+  build:
+    context: .
+    dockerfile: airflow.Dockerfile
+  user: "${AIRFLOW_UID}:0"
+  env_file:
+    - ./airflow/.env
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./great-expectations:/great-expectations
+
+
+x-depends-on: &depends-on
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+    airflow-init:
+      condition: service_completed_successfully
+
+
+services:
+  database:
+    image: postgres:13
+    container_name: database
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./data:/data
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    ports:
+      - 15433:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=alejandro@email.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+    depends_on:
+      - database
+    volumes:
+      - ./pgadmin-data/:/var/lib/pgadmin/
+
+
+  dbt:
+    build:
+      context: .
+      dockerfile: dbt.Dockerfile
+    container_name: dbt
+    volumes:
+      - ./dbt:/dbt
+      - ./data:/data
+    tty: true
+    env_file:
+      - ./dbt/.env
+    depends_on:
+      - database
+    ports:
+      - 8001:8080
+    secrets:
+      - ssh_public_key
+
+
+  # Great Expectations
+  great-expectations:
+    build:
+      context: .
+      dockerfile: gx.Dockerfile
+    container_name: great-expectations
+    volumes:
+      - ./great-expectations:/great-expectations
+      - ./data:/data
+    tty: true
+    depends_on:
+      - database
+    ports:
+      - 8888:8888
+
+
+    # Airflow Services
+  airflow-postgres:
+    image: postgres:13
+    container_name: airflow-postgres
+    ports:
+      - 5434:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+    env_file:
+      - ./airflow/.env
+
+
+  airflow-scheduler:
+    <<: [*common, *depends-on]
+    container_name: airflow-scheduler
+    command:
+      - bash
+      - -c
+      - | # Copy secret to its own file so we can change the file permissions so we can use it
+        mkdir -p ~/.ssh && cat /run/secrets/ssh_private_key >> ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+        airflow scheduler
+    restart: on-failure
+    ports:
+      - 8793:8793
+    secrets:
+      - ssh_private_key
+
+
+  airflow-webserver:
+    <<: [*common, *depends-on]
+    container_name: airflow-webserver
+    restart: always
+    command: webserver
+    ports:
+      - 8080:8080
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "http://localhost:8080/health"
+        ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+
+
+  airflow-init:
+    <<: *common
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        exec /entrypoint airflow version
+
+
+networks:
+  default:
+    name: container_network
+    driver: bridge
+
+
+secrets:
+  ssh_public_key:
+    file: ./ssh-keys/id_rsa.pub
+  ssh_private_key:
+    file: ./ssh-keys/id_rsa

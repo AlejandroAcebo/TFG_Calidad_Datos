@@ -1,0 +1,13 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DX_SANDBOX_POSTGRES_HOST') }}"
+      port: 5432
+      user: "{{ env_var('DX_SANDBOX_POSTGRES_USERNAME') }}"
+      role: postgres
+      password: "{{ env_var('DX_SANDBOX_POSTGRES_PASSWORD') }}"
+      database: postgres
+      schema: public
+      threads: 1
