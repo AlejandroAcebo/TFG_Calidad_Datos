@@ -1656,3 +1656,19 @@
 [2025-03-07T10:57:57.167+0000] {logging_mixin.py:188} INFO - [2025-03-07T10:57:57.166+0000] {dag.py:3096} INFO - Sync 1 DAGs
 [2025-03-07T10:57:57.177+0000] {logging_mixin.py:188} INFO - [2025-03-07T10:57:57.176+0000] {dag.py:3954} INFO - Setting next_dagrun for clientes_dag to None, run_after=None
 [2025-03-07T10:57:57.202+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/clientes_dag.py took 2.232 seconds
+[2025-03-07T11:21:01.451+0000] {processor.py:161} INFO - Started process (PID=1718) to work on /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:01.452+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/clientes_dag.py for tasks to queue
+[2025-03-07T11:21:01.454+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:01.453+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:03.529+0000] {logging_mixin.py:188} WARNING - /opt/airflow/dags/clientes_dag.py:10 RemovedInAirflow3Warning: Param `schedule_interval` is deprecated and will be removed in a future release. Please use `schedule` instead.
+[2025-03-07T11:21:03.533+0000] {processor.py:840} INFO - DAG(s) 'clientes_dag' retrieved from /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:03.549+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:03.549+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2025-03-07T11:21:03.560+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:03.560+0000] {dag.py:3954} INFO - Setting next_dagrun for clientes_dag to None, run_after=None
+[2025-03-07T11:21:03.581+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/clientes_dag.py took 2.137 seconds
+[2025-03-07T11:21:33.658+0000] {processor.py:161} INFO - Started process (PID=1732) to work on /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:33.659+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/clientes_dag.py for tasks to queue
+[2025-03-07T11:21:33.661+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:33.661+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:35.660+0000] {logging_mixin.py:188} WARNING - /opt/airflow/dags/clientes_dag.py:10 RemovedInAirflow3Warning: Param `schedule_interval` is deprecated and will be removed in a future release. Please use `schedule` instead.
+[2025-03-07T11:21:35.664+0000] {processor.py:840} INFO - DAG(s) 'clientes_dag' retrieved from /opt/airflow/dags/clientes_dag.py
+[2025-03-07T11:21:35.678+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:35.677+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2025-03-07T11:21:35.686+0000] {logging_mixin.py:188} INFO - [2025-03-07T11:21:35.686+0000] {dag.py:3954} INFO - Setting next_dagrun for clientes_dag to None, run_after=None
+[2025-03-07T11:21:35.710+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/clientes_dag.py took 2.060 seconds

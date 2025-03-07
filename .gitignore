@@ -1,5 +1,5 @@
-.DS_Store
-.vscode/*
-ssh-keys/*
-pgadmin-data/*
-/great-expectations/gx/*
+analisis-ge/.DS_Store
+analisis-ge/.vscode/*
+analisis-ge/ssh-keys/*
+analisis-ge/pgadmin-data/*
+analisis-ge/great-expectations/gx/*
