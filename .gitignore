@@ -6,5 +6,7 @@ analisis-ge/great-expectations/gx/*
 analisis-ge/great-expectations/.idea
 analisis-ge/great-expectations/.ipynb_checkpoints
 analisis-ge/airflow/logs/*
+analisis-pydeequ/.idea/
+analisis-pydeequ/.venv
 
 
