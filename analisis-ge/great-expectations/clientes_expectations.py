@@ -9,7 +9,6 @@ context = gx.get_context(mode="file")
 
 # In[2]:
 
-
 ## Connect to your data
 
 PG_CONNECTION_STRING = "postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/postgres"
@@ -30,13 +29,16 @@ vd = gx.ValidationDefinition(
 context.validation_definitions.add(vd)
 
 ## Completitud
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="id_cliente", result_format="COMPLETE"))
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="id_cliente",
+                                                        result_format="COMPLETE",
+                                                        meta={"Notas": "Deberías revisar la columna id del cliente."}))
 suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="nombre",result_format="COMPLETE"))
 suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="email",result_format="COMPLETE"))
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="telefono",result_format="COMPLETE"))
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="telefono",
+                                                        result_format="COMPLETE",
+                                                        meta={"Notas": "Deberías revisar la columna telefono."}))
 
 ## Precision semantica ##
-
 ## Email cumple el formato 'letras@letras.letras'
 suite.add_expectation(gxe.ExpectColumnValuesToNotMatchLikePattern(
     column="email",
@@ -63,6 +65,7 @@ suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
 ))
 
 ## Violacion de restricciones
+## Comprobar que un atributo no nulo tiene un campo nulo
 suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
     column="numero_secuencia",
     min_value=1,
@@ -72,10 +75,29 @@ suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
     result_format="COMPLETE"
 ))
 
-
 ## Violacion valor unico
 suite.add_expectation(gxe.ExpectColumnValuesToBeUnique(
     column="dni",result_format="COMPLETE"))
+
+## Pendiente de revision porque esto no funciona exactamente como deberia
+## Tuplas aproximadamente duplicadas
+suite.add_expectation(gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
+    column_list=["nombre", "email", "telefono", "cp", "poblacion"],
+    mostly=0.80
+))
+
+## Filas con valores no esperados
+valores_aceptados = ["normal", "vip"]
+
+suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(
+    column="tipo_cliente",
+    value_set=valores_aceptados
+))
+
+# suite.add_expectation(gxe.ExpectColumnValuesToBeOver18(
+#     column="fecha_nacimiento"
+# ))
+
 
 # In[4]:
 
@@ -97,12 +119,27 @@ valid_pairs = valid_pairs.drop_duplicates(subset=['cp'], keep='first')
 
 valid_list = list(valid_pairs.itertuples(index = False, name = None))
 
+## Esto tendria que ser not to be in set, pero no existe
 suite.add_expectation(gxe.ExpectColumnPairValuesToBeInSet(
     column_A="cp",
     column_B="poblacion",
     value_pairs_set= valid_list,
     mostly=1.0
 ))
+
+
+## Violacion integridad referencial
+## Por algun motivo falla
+# query = """SELECT id_cliente FROM clientes"""
+#
+# valid_clients_id = pd.read_sql(query,engine)
+#
+# suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(
+#     column="id_cliente",
+#     value_set=valid_clients_id
+# ))
+
+
 
 
 # In[6]:
