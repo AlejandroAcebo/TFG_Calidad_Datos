@@ -1,20 +1,21 @@
 import os
 
+from pyspark.sql.functions import col
+
 os.environ["SPARK_VERSION"] = "3.5"
 from pydeequ import Check, CheckLevel
 from pydeequ.verification import VerificationSuite, VerificationResult
 
-import dash
-import dash_table
-from dash import dcc, html
+from dash import dash_table, dash
+from dash import html
 import pandas as pd
-from pyspark.sql import SparkSession
 from pydeequ.analyzers import *
 
 # Configurar la versión de Spark (opcional si está bien instalado)
 
 class Analisis:
     def __init__(self):
+
         # Crear la sesión de Spark con el driver JDBC
         self.spark = (SparkSession.builder
                       .appName("PostgreSQL Connection with PySpark")
@@ -22,6 +23,9 @@ class Analisis:
                       .config("spark.jars", "/home/x/Downloads/postgresql-42.7.5.jar")  # Ruta correcta al driver
                       .getOrCreate())
 
+        # Esto es para que solo muestre errores y no todos los warnings, en caso de algun fallo se podria cambiar para
+        # revisar los warnings
+        self.spark.sparkContext.setLogLevel("ERROR")
         # Definir la URL de la base de datos
         url = "jdbc:postgresql://127.0.0.1:5432/postgres"
 
@@ -32,21 +36,19 @@ class Analisis:
             "driver": "org.postgresql.Driver"
         }
 
-        # Tabla a leer
-        table_name = "clientes"
-
         # Leer datos desde PostgreSQL
-        self.df = self.spark.read.jdbc(url=url, table=table_name, properties=properties)
+        self.df_clientes = self.spark.read.jdbc(url=url, table="clientes", properties=properties)
+        self.df_pedidos = self.spark.read.jdbc(url=url, table="pedidos", properties=properties)
 
     # Metodo para mostrar datos (esto es para probar que la conexion funciona bien)
     def mostrar_datos(self):
-        self.df.show(5)
-        self.df.printSchema()
+        self.df_clientes.show(5)
+        self.df_clientes.printSchema()
 
     # Metodo para comprobar la completitud de ciertas columnas
     def comprobarCompletitud(self):
         analisis_resultados = (AnalysisRunner(self.spark)
-                             .onData(self.df)
+                             .onData(self.df_clientes)
                              .addAnalyzer(Completeness("id_cliente"))
                              .addAnalyzer(Completeness("nombre"))
                              .addAnalyzer(Completeness("email"))
@@ -77,17 +79,42 @@ class Analisis:
         check_contenido_tipo = (Check(self.spark, CheckLevel.Warning, "Verifica si hay alguna fila que tiene este valor distinto al posible")
                                 .isContainedIn("tipo_cliente",posibles_tipos))
 
+        # Comprobacion violacion integridad referencial
+        # Hacemos un dataframe que mire si los clientes de pedidos existen
+        df_validacion = self.df_pedidos.join(self.df_clientes, on="id_cliente", how="left") \
+            .withColumn("existe", col("id_cliente").isNotNull())
+
+        # Se cuentan la cantidad de clientes que existen en pedidos y luego estos clientes no existen
+        existen = df_validacion.filter(col("existe") == True).count()
+
+        porcentaje_validos = existen / self.df_pedidos.count()
+
+        # Definicion del porcentaje personalizado
+        check_cliente_pedidos = (Check(self.spark, CheckLevel.Error, "Violacion integridad referencial")
+                                 .satisfies(f"{porcentaje_validos} >= 0.0", "Porcentaje de clientes válidos que realizaron pedidos"))
+
         # Lanzado del check con todos los checks especificados
         check_resultado = (VerificationSuite(self.spark).
-                           onData(self.df)
+                           onData(self.df_clientes)
                            .addCheck(check_similaridad_filas)
                            .addCheck(check_contenido_tipo)
                            .run())
-        check_resultado_df = VerificationResult.successMetricsAsDataFrame(self.spark, check_resultado)
-        check_resultado_dp = check_resultado_df.toPandas()
-       
-        analisis_resultado_df = AnalyzerContext.successMetricsAsDataFrame(self.spark,resultados)
-        analisis_resultado_dp = analisis_resultado_df.toPandas()
+        check_resultado_df_clientes = VerificationResult.successMetricsAsDataFrame(self.spark, check_resultado)
+
+        check_resultado_clientes_pedidos = (VerificationSuite(self.spark).
+                                    onData(df_validacion)
+                                    .addCheck(check_cliente_pedidos)
+                                    .run())
+        check_resultado_clientes_pedidos_df = VerificationResult.successMetricsAsDataFrame(self.spark, check_resultado_clientes_pedidos)
+
+        # Union de ambos checks
+        check_resultado_dp = pd.concat(
+            [check_resultado_df_clientes.toPandas(), check_resultado_clientes_pedidos_df.toPandas()],
+            ignore_index=True
+        )
+
+        analisis_resultado_df_clientes = AnalyzerContext.successMetricsAsDataFrame(self.spark,resultados)
+        analisis_resultado_dp = analisis_resultado_df_clientes.toPandas()
 
         # Generacion de UI de dash para el visionado de datos
         self.generar_ui_dash(check_resultado_dp, analisis_resultado_dp)
