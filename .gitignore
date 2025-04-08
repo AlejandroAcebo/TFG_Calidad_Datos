@@ -8,5 +8,7 @@ analisis-ge/great-expectations/.ipynb_checkpoints
 analisis-ge/airflow/logs/*
 analisis-pydeequ/.idea/
 analisis-pydeequ/.venv
-
+airflowTFG/*
+openmetadata-docker/*
+*.bak
 
