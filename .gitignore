@@ -11,4 +11,4 @@ analisis-pydeequ/.venv
 airflowTFG/*
 openmetadata-docker/*
 *.bak
-
+.idea
