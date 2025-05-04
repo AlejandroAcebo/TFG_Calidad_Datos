@@ -46,6 +46,7 @@ class Analisis:
         # Prueba la conexión cargando una tabla (asegúrate de tener una en la BD)
         self.df_address = self.spark.read.jdbc(url=url, table="SalesLT.Address", properties=properties)
         self.df_customer = self.spark.read.jdbc(url=url, table="SalesLT.Customer", properties=properties)
+        self.df_customer_address = self.spark.read.jdbc(url=url, table="SalesLT.CustomerAddress", properties=properties)
         self.df_product = self.spark.read.jdbc(url=url, table="SalesLT.Product", properties=properties)
         self.df_salesOrderDetail = self.spark.read.jdbc(url=url, table="SalesLT.SalesOrderDetail", properties=properties)
         self.df_productCategory = self.spark.read.jdbc(url=url, table="SalesLT.ProductCategory", properties=properties)
@@ -174,10 +175,17 @@ class Analisis:
         email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
         analisis_customer.addAnalyzer(PatternMatch("EmailAddress", email_pattern))
 
+        tipo_address = ["Main Office","Shipping"]
+        # ESta condicion comprueba que todos los AddressType tengan un valor recogido en la lista
+        condicion = f"AddressType IN ({', '.join([f'\'{x}\'' for x in tipo_address])})"
+        analisis_customer_address = (AnalysisRunner(self.spark)
+                                .onData(self.df_customer_address)
+                                .addAnalyzer(Compliance("AddressType", condicion)))
+
         ############################################### PRECISION ######################################################
         # Comprobacion si las columnas tienen datos con 2 decimales o mas
         decimal_pattern = r'^\d+\.\d{2,}$'
-        (analisis_address.addAnalyzer(PatternMatch("StandardCost", decimal_pattern))
+        (analisis_product.addAnalyzer(PatternMatch("StandardCost", decimal_pattern))
                          .addAnalyzer(PatternMatch("ListPrice", decimal_pattern))
                          .addAnalyzer(PatternMatch("Weight", decimal_pattern)))
 
@@ -185,6 +193,7 @@ class Analisis:
         analisis_resultado_customer = analisis_customer.run()
         analisis_resultado_address = analisis_address.run()
         analisis_resultado_product= analisis_product.run()
+        analisis_resultado_customer_address = analisis_customer_address.run()
 
         ################################### CONSTRUCCION ANALIZADORES A DATAFRAME ######################################
         analisis_resultado_customer_df = self.procesar_dataframe(
@@ -193,6 +202,8 @@ class Analisis:
             AnalyzerContext.successMetricsAsDataFrame(self.spark, analisis_resultado_address))
         analisis_resultado_product_df = self.procesar_dataframe(
             AnalyzerContext.successMetricsAsDataFrame(self.spark, analisis_resultado_product))
+        analisis_resultado_customer_address_df = self.procesar_dataframe(
+            AnalyzerContext.successMetricsAsDataFrame(self.spark,analisis_resultado_customer_address))
 
         ################################################ LANZADO CHECKS ################################################
 
@@ -238,7 +249,8 @@ class Analisis:
             analisis_resultado_dp = pd.concat(
                  [analisis_resultado_customer_df.toPandas(),
                   analisis_resultado_address_df.toPandas(),
-                  analisis_resultado_product_df.toPandas()],
+                  analisis_resultado_product_df.toPandas(),
+                  analisis_resultado_customer_address_df.toPandas()],
                  ignore_index=True
             )
 
