@@ -48,8 +48,8 @@ class Analisis:
         self.df_pedidos.show(5)
         self.df_facturas.show(5)
 
-    # Metodo para comprobar la completitud de ciertas columnas
-    def comprobarCompletitud(self):
+    # Metodo para comprobar la calidad de ciertas columnas
+    def comprobarCalidad(self):
 
         ########################################### ACTUALIDAD ###############################################
         fecha_limite = datetime.datetime.now() - datetime.timedelta(days=14)

@@ -1,12 +1,11 @@
 import os
+os.environ["SPARK_VERSION"] = "3.5"
 
 from pyspark.sql.functions import col, when, lit, concat, to_date, current_timestamp
-
-os.environ["SPARK_VERSION"] = "3.5"
 from pydeequ.checks import Check, CheckLevel
 from pydeequ.verification import VerificationSuite, VerificationResult
-
-from dash import dash_table, dash, dcc, html
+import base64
+from dash import dash_table, dash, dcc, html, Output, Input, State
 import dash
 import plotly.express as px
 from dash import html
@@ -33,8 +32,8 @@ class Analisis:
 
         # Configurar la URL de conexión a Azure SQL Database
         server = "localhost"  # Esto luego lo puedo cambiar si lanzo en otro servidor de momemto solo lanzo en local
-        database = "AdventureWorksLT2022"
-        url = f"jdbc:sqlserver://{server}:1433;databaseName={database};encrypt=false;trustServerCertificate=true;"
+        self.database = "AdventureWorksLT2022"
+        url = f"jdbc:sqlserver://{server}:1433;databaseName={self.database};encrypt=false;trustServerCertificate=true;"
 
         # Propiedades de conexión
         properties = {
@@ -52,59 +51,22 @@ class Analisis:
         self.df_productCategory = self.spark.read.jdbc(url=url, table="SalesLT.ProductCategory", properties=properties)
 
     def realizarAnalisis(self):
-        ##################################################### ACTUALIDAD ###############################################
-        # Definir fecha límite como datetime
         global analisis_resultado_dp, check_resultado_dp
-        fecha_limite = dt.datetime(2006, 1, 1)
 
-        # Convertir la columna "ModifiedDate" a tipo Timestamp si es necesario
-        self.df_address = self.df_address.withColumn(
-            "ModifiedDate", to_timestamp(col("ModifiedDate"), "yyyy-MM-dd HH:mm:ss")
-        )
-        self.df_customer = self.df_customer.withColumn(
-            "ModifiedDate", to_timestamp(col("ModifiedDate"), "yyyy-MM-dd HH:mm:ss")
-        )
+        ##################################################### ACTUALIDAD ###############################################
 
-        # Registrar los DataFrames como vistas temporales para usarlas en SQL
-        self.df_address.createOrReplaceTempView("df_address_table")
-        self.df_customer.createOrReplaceTempView("df_customer_table")
+        fecha_limite = "2006-01-01 00:00:00"
 
-        # Usar SQL para obtener el total de registros y el número de registros válidos
-        total_address = self.df_address.count()
-        valid_address = self.spark.sql(f"""
-            SELECT COUNT(*) AS valid_count
-            FROM df_address_table
-            WHERE ModifiedDate >= '{fecha_limite.strftime('%Y-%m-%d %H:%M:%S')}'
-        """).collect()[0]["valid_count"]
-
-        total_customer = self.df_customer.count()
-        valid_customer = self.spark.sql(f"""
-            SELECT COUNT(*) AS valid_count
-            FROM df_customer_table
-            WHERE ModifiedDate >= '{fecha_limite.strftime('%Y-%m-%d %H:%M:%S')}'
-        """).collect()[0]["valid_count"]
-
-        # Calcular el porcentaje de registros válidos
-        porcentaje_address = valid_address / total_address if total_address > 0 else 0
-        porcentaje_customer = valid_customer / total_customer if total_customer > 0 else 0
-
-        # Definir el umbral (porcentaje mínimo requerido)
-        umbral = 0.80  # 80% de registros válidos
-
-        # Crear un check personalizado con la comparación directa de los porcentajes
-
+        # Crear el check para Address
         check_resultado_address = (
-            Check(self.spark, CheckLevel.Warning, "validacion_address_fecha_modificacion")
-            .hasSize(lambda x: (valid_address / total_address) >= umbral,
-                     # Verificamos si el porcentaje de registros válidos cumple el umbral
-                     f"El porcentaje de registros en Address con fecha superior a 2006 es: {porcentaje_address:.2f}")
+            Check(self.spark, CheckLevel.Warning, "Validación Address ModifiedDate")
+            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida address", lambda x: x >= umbral)
         )
 
+        # Crear el check para Customer
         check_resultado_customer = (
-            Check(self.spark, CheckLevel.Warning, "validacion_customer_fecha_modificacion")
-            .hasSize(lambda x: (valid_customer / total_customer) >= umbral,
-                     # Verificamos si el porcentaje de registros válidos cumple el umbral
-                     f"El porcentaje de registros en Customer con fecha superior a 2006 es: {porcentaje_customer:.2f}")
+            Check(self.spark, CheckLevel.Warning, "Validación Customer ModifiedDate")
+            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida customer", lambda x: x >= umbral)
         )
 
 
@@ -231,7 +193,7 @@ class Analisis:
 
         ############################# LLAMADA PARA ESCRITURA EN BD O GENERACION UI #####################################
         # Si esta en true entonces genera la UI en Dash sino escribe en base de datos
-        generacion_ui = False
+        generacion_ui = True
         if not generacion_ui:
             ######################################### ESCRITURA EN BD ##################################################
             self.registro_basedatos_analisis("analisis",analisis_resultado_customer_df)
@@ -314,7 +276,7 @@ class Analisis:
 
     # Este metodo se usara si se quiere lanzar de forma web
     def generar_ui_dash(self, check_resultado_dp, analisis_resultado_dp):
-        app = dash.Dash(__name__)
+        app = dash.Dash(__name__,suppress_callback_exceptions=True)
 
         # Umbral de porcentaje con valor predeterminado (esto puede cambiarse con el input)
         umbral_porcentaje = 80  # Inicialmente 80%
@@ -365,112 +327,155 @@ class Analisis:
             plot_bgcolor='white',
         )
 
-        # Layout de la aplicación Dash
+        # Layout de la UI en Dash
         app.layout = html.Div([
             html.H1("Resultados de Análisis PyDeequ", style={
-                'textAlign': 'center',
-                'fontSize': '32px',
-                'fontWeight': 'bold',
-                'color': '#4CAF50',
-                'marginBottom': '40px'
+                'textAlign': 'center', 'fontSize': '32px', 'fontWeight': 'bold',
+                'color': '#4CAF50', 'marginBottom': '40px'
             }),
 
-            # Tabla de "Análisis Resultados"
             html.Div([
-                html.H3("Tabla 1: Resultados de Análisis", style={'textAlign': 'center', 'marginBottom': '20px'}),
+                # Cargar JSON
+                html.Div([
+                    dcc.Upload(
+                        id='upload-json',
+                        children=html.Button('📂 Cargar JSON', style={
+                            'backgroundColor': '#2196F3', 'color': 'white',
+                            'border': 'none', 'padding': '10px 20px', 'fontSize': '16px',
+                            'cursor': 'pointer', 'borderRadius': '8px'
+                        }),
+                        multiple=False
+                    )
+                ], style={'display': 'inline-block', 'width': '50%', 'textAlign': 'left'}),
+
+                # Guardar JSON
+                html.Div([
+                    html.Button("💾 Guardar JSON", id="guardar-btn", n_clicks=0, style={
+                        'backgroundColor': '#4CAF50', 'color': 'white',
+                        'border': 'none', 'padding': '10px 20px', 'fontSize': '16px',
+                        'cursor': 'pointer', 'borderRadius': '8px'
+                    }),
+                    dcc.Download(id="descarga-json")
+                ], style={'display': 'inline-block', 'width': '50%', 'textAlign': 'right'})
+            ], style={'marginBottom': '30px'}),
+
+
+            # Tabla 1: Análisis Resultados
+            html.Div([
+                html.H3("Tabla 1: Resultados de Análisis", style={'textAlign': 'center'}),
                 dash_table.DataTable(
                     id='table-analisis',
-                    columns=[
-                        {"name": col, "id": col} if col != "Porcentaje_Numerico" else {"name": "Porcentaje",
-                                                                                       "id": "Porcentaje"}
-                        for col in analisis_resultado_dp.columns if col != "Porcentaje_Numerico"
-                        # Aquí eliminamos la columna "Porcentaje_Numerico"
-                    ],
+                    columns=[{"name": col, "id": col} for col in analisis_resultado_dp.columns if
+                             col != 'Porcentaje_Numerico'],
                     data=analisis_resultado_dp.to_dict('records'),
-                    style_table={
-                        'overflowY': 'auto',  # Permite desplazamiento solo si es necesario
-                        'borderRadius': '10px',
-                        'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
-                        'marginBottom': '40px'
-                    },
-                    style_header={
-                        'backgroundColor': '#4CAF50',
-                        'fontWeight': 'bold',
-                        'color': 'white',
-                        'textAlign': 'center',
-                        'fontSize': '16px'
-                    },
-                    style_cell={
-                        'textAlign': 'center',
-                        'fontSize': '14px',
-                        'padding': '12px',
-                        'borderBottom': '1px solid #ddd'
-                    },
-                    style_data={
-                        'backgroundColor': '#f9f9f9',
-                        'color': '#333'
-                    },
+                    style_table={'overflowY': 'auto', 'borderRadius': '10px',
+                                 'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)', 'marginBottom': '40px'},
+                    style_header={'backgroundColor': '#4CAF50', 'fontWeight': 'bold', 'color': 'white',
+                                  'textAlign': 'center'},
+                    style_cell={'textAlign': 'center', 'padding': '10px', 'fontSize': '14px',
+                                'borderBottom': '1px solid #ddd'},
+                    style_data={'backgroundColor': '#f9f9f9'}
                 )
             ]),
 
-            # Gráfico de Líneas: Resultados de Análisis
+            # Tabla 2: Check Resultados
             html.Div([
-                html.H3("Gráfico de Líneas: Resultados de Análisis",
-                        style={'textAlign': 'center', 'marginBottom': '20px'}),
-                dcc.Graph(
-                    id='line-graph',
-                    figure=fig_line
-                ),
-            ]),
-
-            # Tabla de "Check Resultados"
-            html.Div([
-                html.H3("Tabla 2: Resultados de Check", style={'textAlign': 'center', 'marginBottom': '20px'}),
+                html.H3("Tabla 2: Resultados de Check", style={'textAlign': 'center'}),
                 dash_table.DataTable(
                     id='table-check',
-                    columns=[
-                        {"name": col, "id": col} if col != "Porcentaje_Numerico" else {"name": "Porcentaje",
-                                                                                       "id": "Porcentaje"}
-                        for col in check_resultado_dp.columns if col != "Porcentaje_Numerico"
-                        # Aquí eliminamos la columna "Porcentaje_Numerico"
-                    ],
+                    columns=[{"name": col, "id": col} for col in check_resultado_dp.columns if
+                             col != 'Porcentaje_Numerico'],
                     data=check_resultado_dp.to_dict('records'),
-                    style_table={
-                        'overflowY': 'auto',  # Permite desplazamiento solo si es necesario
-                        'borderRadius': '10px',
-                        'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    },
-                    style_header={
-                        'backgroundColor': '#4CAF50',
-                        'fontWeight': 'bold',
-                        'color': 'white',
-                        'textAlign': 'center',
-                        'fontSize': '16px'
-                    },
-                    style_cell={
-                        'textAlign': 'center',
-                        'fontSize': '14px',
-                        'padding': '12px',
-                        'borderBottom': '1px solid #ddd'
-                    },
-                    style_data={
-                        'backgroundColor': '#f9f9f9',
-                        'color': '#333'
-                    },
+                    style_table={'overflowY': 'auto', 'borderRadius': '10px',
+                                 'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)', 'marginBottom': '40px'},
+                    style_header={'backgroundColor': '#4CAF50', 'fontWeight': 'bold', 'color': 'white',
+                                  'textAlign': 'center'},
+                    style_cell={'textAlign': 'center', 'padding': '10px', 'fontSize': '14px',
+                                'borderBottom': '1px solid #ddd'},
+                    style_data={'backgroundColor': '#f9f9f9'}
                 )
             ]),
 
-            # Gráfico de los Resultados de Check
+            # Gráficos
             html.Div([
-                html.H3("Gráfico de Resultados", style={'textAlign': 'center', 'marginBottom': '20px'}),
-                dcc.Graph(
-                    id='graph-checks',
-                    figure=fig
-                )
+                html.H3("Gráfico de Líneas: Resultados de Análisis", style={'textAlign': 'center'}),
+                dcc.Graph(id='line-graph', figure=fig_line),
+                html.H3("Gráfico de Resultados de Checks", style={'textAlign': 'center'}),
+                dcc.Graph(id='graph-checks', figure=fig)
             ])
-        ])
+        ], style={'padding': '20px', 'maxWidth': '1200px', 'margin': '0 auto'})
 
+        registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, self.database)
         app.run_server(debug=True)
+
+# Define esto fuera de la clase, o en el mismo módulo global:
+def registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, database):
+    @app.callback(
+        Output("descarga-json", "data"),
+        Input("guardar-btn", "n_clicks"),
+        prevent_initial_call=True
+    )
+    def generar_json_combinado(n_clicks):
+        if n_clicks <= 0:
+            return None
+
+        fecha_actual = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        nombre_archivo = f"analisis_{database}_{fecha_actual}.json"
+
+        analisis_dict = analisis_resultado_dp.drop(columns=["Porcentaje_Numerico"], errors='ignore').copy()
+        check_dict = check_resultado_dp.drop(columns=["Porcentaje_Numerico"], errors='ignore').copy()
+
+        for df in [analisis_dict, check_dict]:
+            for col in df.columns:
+                if pd.api.types.is_datetime64_any_dtype(df[col]):
+                    df[col] = df[col].astype(str)
+
+        datos_combinados = {
+            "analisis": analisis_dict.to_dict(orient="records"),
+            "checks": check_dict.to_dict(orient="records")
+        }
+
+        return dict(content=json.dumps(datos_combinados, indent=4), filename=nombre_archivo)
+
+    @app.callback(
+        [Output('table-analisis', 'data'),
+         Output('table-check', 'data'),
+         Output('line-graph', 'figure'),
+         Output('graph-checks', 'figure')],
+        Input('upload-json', 'contents'),
+        prevent_initial_call=True
+    )
+    def cargar_json(contents):
+        if contents is None:
+            raise dash.exceptions.PreventUpdate
+
+        content_type, content_string = contents.split(',')
+        decoded = base64.b64decode(content_string)
+        json_data = json.loads(decoded.decode('utf-8'))
+
+        df_analisis = pd.DataFrame(json_data.get("analisis", []))
+        df_checks = pd.DataFrame(json_data.get("checks", []))
+
+        df_analisis['Porcentaje_Numerico'] = df_analisis['Porcentaje'].str.replace('%', '').astype(float)
+        df_checks['Porcentaje_Numerico'] = df_checks['Porcentaje'].str.replace('%', '').astype(float)
+
+        fig_line = px.line(
+            df_analisis, x='instance', y='Porcentaje_Numerico', title='Análisis de Resultados', markers=True
+        )
+        fig_line.update_layout(
+            xaxis_title='', yaxis_title='Porcentaje', yaxis=dict(range=[0, 100]),
+            showlegend=False, plot_bgcolor='white'
+        )
+
+        fig_bar = px.bar(
+            df_checks, x='instance', y='Porcentaje_Numerico', title='Resultados de Checks',
+            color='Porcentaje_Numerico', color_continuous_scale='reds'
+        )
+        fig_bar.update_layout(
+            xaxis_title='', yaxis_title='Porcentaje', showlegend=False, plot_bgcolor='white'
+        )
+
+        return df_analisis.to_dict('records'), df_checks.to_dict('records'), fig_line, fig_bar
 
 
 if __name__ == "__main__":

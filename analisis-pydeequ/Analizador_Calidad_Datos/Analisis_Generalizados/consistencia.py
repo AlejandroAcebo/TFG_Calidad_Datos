@@ -1,10 +1,10 @@
 import os
+os.environ["SPARK_VERSION"] = "3.5"
 
 from pydeequ import Check, CheckLevel
 from pydeequ.verification import VerificationSuite
 from pyspark.sql.functions import col
 
-os.environ["SPARK_VERSION"] = "3.5"
 from pydeequ.analyzers import AnalysisRunner, Completeness, AnalyzerContext
 
 def analizar_consistencia(spark, df_tabla1, df_tabla2, columna, columna2):
