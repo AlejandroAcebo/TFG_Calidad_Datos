@@ -76,6 +76,13 @@ class Analisis:
                                .addAnalyzer(Completeness("telefono")))
 
         ########################################## CONSISTENCIA ####################################################
+
+        analisis_resultados.addAnalyzer(Minimum("id_cliente",col("id_cliente") > 1))
+        analisis_resultados.addAnalyzer(Completeness("id_cliente"))
+
+        # Comprobar si la columna DNI tiene valores repetidos
+        analisis_resultados.addAnalyzer(Uniqueness(["dni"]))
+
         df_validacion = self.df_pedidos.join(self.df_clientes, on="id_cliente", how="left") \
             .withColumn("existe", col("id_cliente").isNotNull())
 
@@ -89,28 +96,17 @@ class Analisis:
                                  .satisfies(f"{porcentaje_validos} >= 0.0"
                                             , "Porcentaje de clientes válidos que realizaron pedidos"))
 
-        dni_pattern = r"^\d{8}[A-HJ-KM-NP-TVW-Za-hj-km-np-tvwxz]$"
-        analisis_resultados.addAnalyzer(PatternMatch("dni", dni_pattern))
-
-        # Comprobar si la columna DNI tiene valores repetidos
-        analisis_resultados.addAnalyzer(Uniqueness(["dni"]))
-
         ####################################### CREDIBILIDAD ########################################################
 
         telf_pattern = r"^\d{9,}$"
         analisis_resultados.addAnalyzer(PatternMatch("telf", telf_pattern))
 
-        cp_pattern = r"^\d{5,}$"
-        analisis_resultados.addAnalyzer(PatternMatch("cp", cp_pattern))
-
-        ################################################ EXACTITUD ###############################################
-
         # Comprobar si las filas de la columna email
         email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
-        (analisis_resultados.addAnalyzer(PatternMatch("email",email_pattern)))
+        (analisis_resultados.addAnalyzer(PatternMatch("email", email_pattern)))
 
-        ############################################### PRECISION #################################################
+        ################################################ EXACTITUD ###############################################
         # Comprobacion si todas las filas contienen en el campo tipo_cliente normal o vip
         posibles_tipos = ["normal", "vip"]
         check_contenido_tipo = (Check(self.spark, CheckLevel.Warning,
