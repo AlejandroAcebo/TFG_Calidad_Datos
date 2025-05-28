@@ -74,7 +74,7 @@ class Analisis:
                                       "Verifica si hay alguna fila que tiene este valor distinto al posible")
                                 .isContainedIn("tipo_cliente", posibles_tipos))
 
-        # COmprobar fecha baja es posterior a fecha registro
+        # Comprobar fecha baja es posterior a fecha registro
         check_registro_fecha = (
             Check(self.spark, CheckLevel.Error, "Validación de fechas")
             .satisfies(
