@@ -64,7 +64,7 @@ suite.add_expectation(gxe.ExpectColumnValuesToBeUnique(column="dni", result_form
 # Exactitud
 suite.add_expectation(gxe.ExpectColumnValuesToMatchRegex(
     column="telefono",
-    regex=r"^\d{3,4}-\d{4}$",
+    regex=r"^\d{9,}$",
     mostly=1.0,
     result_format="COMPLETE"
 ))

@@ -1,0 +1,92 @@
+-- CREACIÓN DE TABLAS
+CREATE TABLE clientes (
+    id_cliente SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    telefono VARCHAR(15),
+    fecha_registro TIMESTAMP,
+    fecha_baja TIMESTAMP,
+    dni VARCHAR(9) UNIQUE,
+    fecha_nacimiento DATE,
+    numero_secuencia INT CHECK (numero_secuencia > 0),
+    activo BOOLEAN,
+    cp VARCHAR(10),
+    poblacion VARCHAR(100),
+    tipo_cliente VARCHAR(50),
+    CHECK (fecha_nacimiento <= CURRENT_DATE - INTERVAL '18 years')
+);
+
+CREATE TABLE pedidos (
+    id_pedido SERIAL PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) CHECK (total >= 0),
+    estado VARCHAR(20) CHECK (estado IN ('pendiente', 'procesando', 'enviado', 'entregado', 'cancelado')),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+);
+
+CREATE TABLE pagos (
+    id_pago SERIAL PRIMARY KEY,
+    id_pedido INT NOT NULL,
+    id_cliente INT NOT NULL,
+    fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    monto DECIMAL(10,2) CHECK (monto > 0),
+    metodo_pago VARCHAR(20) CHECK (metodo_pago IN ('tarjeta', 'transferencia', 'paypal', 'efectivo')),
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+);
+
+CREATE TABLE facturas (
+    id_factura SERIAL PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    id_pedido INT NOT NULL,
+    monto DECIMAL(10,2) NOT NULL CHECK (monto >= 0),
+    estado_pago VARCHAR(20) NOT NULL CHECK (estado_pago IN ('Pendiente', 'Pagado', 'Vencido')),
+    fecha_emision DATE NOT NULL DEFAULT CURRENT_DATE,
+    fecha_pago DATE NULL,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido) ON DELETE CASCADE
+);
+
+-- INSERCIÓN DE DATOS
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo, cp, poblacion, tipo_cliente) 
+VALUES
+('Luis García', 'luis.garcia@email.com', '123456789', '2025-03-01 10:30:00', NULL, '12345678Z', '2000-05-15', 1, TRUE, NULL, NULL, 'normal'),
+('Ana Martín', 'ana.martin@email.com', '987654321', '2025-02-25 09:15:00', NULL, '23456789A', '1995-11-20', 2, TRUE, NULL, NULL, 'normal'),
+('Pedro Martínez', 'pedro.martinez@email.com', '555123456', '2025-03-02 12:00:00', NULL, '34567890B', '1990-03-10', 3, TRUE, NULL, NULL, 'normal'),
+('María López', 'maria.lopez@email.com', '555901234', '2025-02-28 11:00:00', NULL, '12345678X', '1990-12-15', 5, TRUE, NULL, NULL, 'normal'),
+('Carlos Gómez', 'carlos.gomez@email.com', '555345678', '2025-01-10 14:00:00', NULL, '12345678Y', '1985-08-30', 6, FALSE, NULL, NULL, 'normal'),
+('Laura Sánchez', 'laura.sanchez@email.com', '555112233', '2025-03-06 11:00:00', NULL, '67890123A', '1998-04-22', 7, TRUE, '28001', 'Madrid', 'normal'),
+('Miguel Ruiz', 'miguel.ruiz@email.com', '555334455', '2025-03-06 12:00:00', NULL, '78901234B', '1985-08-15', 8, TRUE, '28001', 'Madrid', 'normal'),
+('Ana Pérez', 'ana.perez@email.com', '555778899', '2025-03-07 13:00:00', NULL, '89012345C', '1992-07-10', 9, FALSE, '28002', 'Valencia', 'normal'),
+('Pedro Gómez', 'pedro.gomez@email.com', '555998877', '2025-03-08 14:00:00', NULL, '90123456D', '2001-02-20', 10, TRUE, '28002', 'Valencia', 'normal'),
+('Lucía Torres', 'lucia.torres@email.com', '555667788', '2025-03-09 15:00:00', NULL, '12345678E', '1993-11-25', 11, TRUE, '28001', 'Madrid', 'normal'),
+('Laura2', 'laura@email.com', '555311224', '2025-03-06 11:00:00', NULL, '67890123B', '1998-04-22', 7, TRUE, '28001', 'Cuenca', 'normal');
+
+-- INSERCIÓN DE DATOS EN PEDIDOS
+INSERT INTO pedidos (id_cliente, fecha_pedido, total, estado)
+VALUES
+(1, '2025-03-06 12:00:00', 150.50, 'pendiente'),
+(2, '2025-03-06 13:30:00', 220.00, 'procesando'),
+(3, '2025-03-07 15:45:00', 89.99, 'enviado'),
+(4, '2025-03-08 10:20:00', 315.75, 'entregado'),
+(5, '2025-02-09 18:10:00', 120.00, 'cancelado');
+
+-- INSERCIÓN DE DATOS EN PAGOS
+INSERT INTO pagos (id_pedido, id_cliente, fecha_pago, monto, metodo_pago)
+VALUES
+(1, 1, '2025-03-06 12:30:00', 150.50, 'tarjeta'),
+(2, 2, '2025-03-06 14:00:00', 220.00, 'transferencia'),
+(3, 3, '2025-03-07 16:00:00', 89.99, 'paypal'),
+(4, 4, '2025-03-08 10:30:00', 315.75, 'efectivo'),
+(5, 5, '2025-03-09 18:30:00', 120.00, 'tarjeta');
+
+-- INSERCIÓN DE DATOS EN FACTURAS
+INSERT INTO facturas (id_cliente, id_pedido, monto, estado_pago, fecha_emision, fecha_pago)
+VALUES
+(1, 1, 150.50, 'Pendiente', '2025-03-06', NULL),
+(2, 2, 220.00, 'Pagado', '2025-03-06', '2025-03-07'),
+(3, 3, 89.99, 'Pendiente', '2025-03-07', NULL),
+(4, 4, 315.75, 'Pagado', '2025-03-08', '2025-03-09'),
+(5, 5, 120.00, 'Vencido', '2025-03-09', NULL);
