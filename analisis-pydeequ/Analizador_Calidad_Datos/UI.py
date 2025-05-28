@@ -70,7 +70,7 @@ def ui():
     global patron, tabla_seleccionada_2, columna_2, tipo_exactitud,\
         tipo_credibilidad, num_decimales,schema_guardar, tabla_guardar, tiempo_limite
 
-    # 1.Datos de conexión
+    # Datos de conexión
     if "conectado_analisis" not in st.session_state:
         st.session_state["conectado_analisis"] = False
 
@@ -170,6 +170,8 @@ def ui():
         col_izq, col_der = st.columns(2)
 
         with col_izq:
+
+            # SELECCIÓN Y MOSTRADO DE LOS DIFERENTES ESQUEMAS, TABLAS Y TIPO DE TEST
             schemas = listar_schemas(spark, url, properties)
             schema_seleccionado = st.selectbox("Selecciona un esquema", schemas)
             print(schema_seleccionado)
@@ -182,7 +184,10 @@ def ui():
             tipo_analisis = st.selectbox("Selecciona el tipo de análisis", ["Completitud","Credibilidad","Consistencia"
                 ,"Exactitud","Precision","Actualidad"])
 
+            # INTRODUCCIÓN DE NUEVOS SELECCIONABLES O CUADROS DE TEXTO DEPENDIENDO DEL TIPO DE TEST
             match tipo_analisis:
+
+                # En este caso se permite seleccionar si quiere un patrón o un conjunto de valores válidos
                 case "Credibilidad":
                     tipos_credibilidad_opciones = ["Patron", "Conjunto valores"]
                     tipo_credibilidad = st.selectbox("Selecciona el tipo", tipos_credibilidad_opciones)
@@ -190,6 +195,8 @@ def ui():
                     st.caption("Ejemplo patron: ^(?=(?:\D*\d){9,})[^\p{L}]*$")
                     st.caption("Ejemplo posibles valores: Main Office,Shipping")
 
+                # Dependiendo del tipo de exactitud que se desee seleccionar primeramente y segundo según el formato
+                # rellenar el campo de texto del patrón o conjunto de valores válidos.
                 case "Exactitud":
                     tipos_exactitud_opciones = ["Sintactica","Semantica"]
                     tipo_exactitud = st.selectbox("Selecciona el tipo",tipos_exactitud_opciones)
@@ -290,6 +297,7 @@ def ui():
             else:
                 st.warning("No hay tests guardados.")
 
+            # Boton para cargar un conjunto de pruebas en formato JSON
             archivo_test = st.file_uploader("Cargar conjunto de test", type="json")
             if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
                 try:
@@ -306,8 +314,7 @@ def ui():
                 except Exception as e:
                     st.error(f"Error al leer el archivo JSON: {e}")
 
-        # Ejecutar todos los análisis
-        # 3. Ejecución de los tests guardados
+        # Ejecución del conjunto de pruebas guardadas o cargadas
         if st.button("Ejecutar todos los análisis"):
             resultado = pd.DataFrame()
             # DataFrame pandas vacío para acumular resultados

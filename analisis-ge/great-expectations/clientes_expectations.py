@@ -1,161 +1,120 @@
-#!/usr/bin/env python
-# coding: utf-8
-# In[1]:
 import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.checkpoint import UpdateDataDocsAction
 
-context = gx.get_context(mode="file")
+context = gx.get_context()
 
-# In[2]:
-
-## Connect to your data
-
+# Configurar datasource para Postgres
 PG_CONNECTION_STRING = "postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/postgres"
 pg_datasource = context.data_sources.add_postgres(name="pg_datasource", connection_string=PG_CONNECTION_STRING)
-asset = pg_datasource.add_table_asset(name="pedidos_data", table_name="clientes")
-bd = asset.add_batch_definition_whole_table("BD")
 
-# In[3]:
+# Definir el asset (tabla clientes)
+clientes_asset = pg_datasource.add_table_asset(name="clientes_asset", table_name="clientes")
+batch = clientes_asset.add_batch_definition_whole_table("clientes_batch")
 
-## Create Expectations
-suite = context.suites.add(gx.ExpectationSuite("Suite"))
+# Crear suite y validation definition
+suite = context.suites.add(gx.ExpectationSuite("clientes_suite"))
 vd = gx.ValidationDefinition(
-    name="Validation Definition",
-    data=bd,
+    name="clientes_validation_definition",
+    data=batch,
     suite=suite
 )
-
 context.validation_definitions.add(vd)
 
-## Completitud
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="id_cliente",
-                                                        result_format="COMPLETE",
-                                                        meta={"Notas": "Deberías revisar la columna id del cliente."}))
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="nombre",result_format="COMPLETE"))
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="email",result_format="COMPLETE"))
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="telefono",
-                                                        result_format="COMPLETE",
-                                                        meta={"Notas": "Deberías revisar la columna telefono."}))
+# Agregar expectations similares a tu pydeequ:
 
-## Precision semantica ##
-## Email cumple el formato 'letras@letras.letras'
-suite.add_expectation(gxe.ExpectColumnValuesToNotMatchLikePattern(
+# 1) Completitud
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="id_cliente", result_format="COMPLETE"))
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="nombre", result_format="COMPLETE"))
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="email", result_format="COMPLETE"))
+suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="telefono", result_format="COMPLETE"))
+
+# 2) Formato email y teléfono con regex
+suite.add_expectation(gxe.ExpectColumnValuesToMatchRegex(
     column="email",
-    like_pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+    regex=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+    mostly=1.0,
     result_format="COMPLETE"
 ))
 
-## Telefono cumple el formato 'XXXX-XXXX' siendo X numeros
-suite.add_expectation(gxe.ExpectColumnValuesToNotMatchLikePattern(
+suite.add_expectation(gxe.ExpectColumnValuesToMatchRegex(
     column="telefono",
-    like_pattern=r"^\d{3,4}-\d{4}$",  # acepta entre 3 o 4 dígitos antes del guion
+    regex=r"^\d{3,4}-\d{4}$",
+    mostly=1.0,
     result_format="COMPLETE"
 ))
 
+# 3) Condición personalizada para fechas (fecha_registro <= fecha_baja o fecha_baja es NULL)
+# Como Great Expectations no tiene expect_satisfies, podemos usar expect_select_column_values_to_be_in_set
+# O crear expectation custom. Aquí usamos "expect_column_values_to_be_between" no aplica directamente,
+# Por eso, podemos usar expect_sql_query para validar esta regla:
 
-## Violacion de dominio
-suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
-    column="numero_secuencia",
-    min_value=1,
-    max_value= None,
-    strict_min=True,
-    strict_max=False,
-    result_format="COMPLETE"
+query_fecha = """
+SELECT COUNT(*) AS invalid_count
+FROM clientes
+WHERE fecha_baja IS NOT NULL AND fecha_registro > fecha_baja
+"""
+
+suite.add_expectation(gxe.ExpectQueryToReturnRows(
+    query=query_fecha,
+    result_format="COMPLETE",
+    meta={"Notas": "fecha_registro debe ser menor o igual que fecha_baja cuando esta no es NULL"},
+    condition=lambda rows: rows.collect()[0]["invalid_count"] == 0
 ))
 
-## Violacion de restricciones
-## Comprobar que un atributo no nulo tiene un campo nulo
-suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
-    column="numero_secuencia",
-    min_value=1,
-    max_value= None,
-    strict_min=True,
-    strict_max=False,
-    result_format="COMPLETE"
-))
+# 4) Valor único DNI
+suite.add_expectation(gxe.ExpectColumnValuesToBeUnique(column="dni", result_format="COMPLETE"))
 
-## Violacion valor unico
-suite.add_expectation(gxe.ExpectColumnValuesToBeUnique(
-    column="dni",result_format="COMPLETE"))
-
-## Pendiente de revision porque esto no funciona exactamente como deberia
-## Tuplas aproximadamente duplicadas
-suite.add_expectation(gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
-    column_list=["nombre", "email", "telefono", "cp", "poblacion"],
-    mostly=0.80
-))
-
-## Filas con valores no esperados
+# 5) Valores permitidos para tipo_cliente
 valores_aceptados = ["normal", "vip"]
-
 suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(
     column="tipo_cliente",
-    value_set=valores_aceptados
+    value_set=valores_aceptados,
+    mostly=1.0,
+    result_format="COMPLETE"
 ))
 
-# suite.add_expectation(gxe.ExpectColumnValuesToBeOver18(
-#     column="fecha_nacimiento"
-# ))
+# 6) Valor de numero_secuencia > 1
+suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(
+    column="numero_secuencia",
+    min_value=2,  # Strict min > 1
+    max_value=None,
+    result_format="COMPLETE"
+))
 
-
-# In[4]:
+# 7) Integridad referencial para pares (cp, poblacion)
+# Primero obtenemos la lista válida con pandas y sqlalchemy
 
 from sqlalchemy import create_engine
 import pandas as pd
 
 engine = create_engine(PG_CONNECTION_STRING)
 
-## Violacion integridad referencial
-## Esto deberia revisarlo porque esto no va bien
-query = """SELECT cp, poblacion 
+query = """
+SELECT cp, poblacion
 FROM clientes
 GROUP BY cp, poblacion
-HAVING COUNT(DISTINCT poblacion) = 1"""
+HAVING COUNT(DISTINCT poblacion) = 1
+"""
 
-valid_pairs = pd.read_sql(query,engine)
+valid_pairs_df = pd.read_sql(query, engine)
+valid_pairs = list(valid_pairs_df.itertuples(index=False, name=None))
 
-valid_pairs = valid_pairs.drop_duplicates(subset=['cp'], keep='first')
-
-valid_list = list(valid_pairs.itertuples(index = False, name = None))
-
-## Esto tendria que ser not to be in set, pero no existe
 suite.add_expectation(gxe.ExpectColumnPairValuesToBeInSet(
     column_A="cp",
     column_B="poblacion",
-    value_pairs_set= valid_list,
-    mostly=1.0
+    value_pairs_set=valid_pairs,
+    mostly=1.0,
+    result_format="COMPLETE"
 ))
 
-
-## Violacion integridad referencial
-## Por algun motivo falla
-# query = """SELECT id_cliente FROM clientes"""
-#
-# valid_clients_id = pd.read_sql(query,engine)
-#
-# suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(
-#     column="id_cliente",
-#     value_set=valid_clients_id
-# ))
-
-
-
-
-# In[6]:
-
-## Validate your data
+# Crear y ejecutar el checkpoint
 checkpoint = context.checkpoints.add(gx.Checkpoint(
-    name="Checkpoint",
+    name="clientes_checkpoint",
     validation_definitions=[vd],
-    actions=[
-        UpdateDataDocsAction(name="update_data_docs")
-    ]
+    actions=[UpdateDataDocsAction(name="update_data_docs")]
 ))
 
-## Complete is for show all the data that fail the tests
-checkpoint_result = checkpoint.run()
+result = checkpoint.run()
 
-
-
-
+print(result)

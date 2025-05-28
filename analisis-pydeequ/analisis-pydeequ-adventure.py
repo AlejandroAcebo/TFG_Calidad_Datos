@@ -60,13 +60,13 @@ class Analisis:
         # Crear el check para Address
         check_resultado_address = (
             Check(self.spark, CheckLevel.Warning, "Validación Address ModifiedDate")
-            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida address", lambda x: x >= umbral)
+            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida address")
         )
 
         # Crear el check para Customer
         check_resultado_customer = (
             Check(self.spark, CheckLevel.Warning, "Validación Customer ModifiedDate")
-            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida customer", lambda x: x >= umbral)
+            .satisfies(f"ModifiedDate >= TIMESTAMP('{fecha_limite}')", "Fecha válida customer")
         )
 
 
@@ -276,56 +276,7 @@ class Analisis:
 
     # Este metodo se usara si se quiere lanzar de forma web
     def generar_ui_dash(self, check_resultado_dp, analisis_resultado_dp):
-        app = dash.Dash(__name__,suppress_callback_exceptions=True)
-
-        # Umbral de porcentaje con valor predeterminado (esto puede cambiarse con el input)
-        umbral_porcentaje = 80  # Inicialmente 80%
-
-        # Convertir porcentajes de 'check_resultado_dp' a valores numéricos para los gráficos
-        check_resultado_dp['Porcentaje_Numerico'] = check_resultado_dp['Porcentaje'].str.replace('%', '').astype(float)
-
-        # Crear gráfico de barras
-        fig = px.bar(
-            check_resultado_dp,
-            x='instance',
-            y='Porcentaje_Numerico',  # Usamos la columna sin '%'
-            title='Resultados de Checks',
-            color='Porcentaje_Numerico',
-            color_continuous_scale='reds',  # Para hacer un gradiente de colores según el valor
-            barmode='group'
-        )
-
-        # Ajustes de visualización del gráfico de barras
-        fig.update_layout(
-            xaxis_title='',
-            yaxis_title='Porcentaje',
-            showlegend=False,
-            plot_bgcolor='white',
-        )
-
-        # Convertir porcentajes de 'analisis_resultado_dp' a valores numéricos para los gráficos
-        analisis_resultado_dp['Porcentaje_Numerico'] = analisis_resultado_dp['Porcentaje'].str.replace('%', '').astype(
-            float)
-
-        # Crear gráfico de líneas
-        fig_line = px.line(
-            analisis_resultado_dp,
-            x='instance',
-            y='Porcentaje_Numerico',  # Usamos la columna sin '%'
-            title='Análisis de Resultados',
-            markers=True
-        )
-
-        # Ajustes de visualización del gráfico de líneas
-        fig_line.update_layout(
-            xaxis_title='',
-            yaxis_title='Porcentaje',
-            yaxis=dict(
-                range=[0, 100],  # Rango de 0 a 100 para el eje Y
-            ),
-            showlegend=False,
-            plot_bgcolor='white',
-        )
+        app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
         # Layout de la UI en Dash
         app.layout = html.Div([
@@ -358,7 +309,6 @@ class Analisis:
                     dcc.Download(id="descarga-json")
                 ], style={'display': 'inline-block', 'width': '50%', 'textAlign': 'right'})
             ], style={'marginBottom': '30px'}),
-
 
             # Tabla 1: Análisis Resultados
             html.Div([
@@ -394,21 +344,12 @@ class Analisis:
                                 'borderBottom': '1px solid #ddd'},
                     style_data={'backgroundColor': '#f9f9f9'}
                 )
-            ]),
-
-            # Gráficos
-            html.Div([
-                html.H3("Gráfico de Líneas: Resultados de Análisis", style={'textAlign': 'center'}),
-                dcc.Graph(id='line-graph', figure=fig_line),
-                html.H3("Gráfico de Resultados de Checks", style={'textAlign': 'center'}),
-                dcc.Graph(id='graph-checks', figure=fig)
             ])
         ], style={'padding': '20px', 'maxWidth': '1200px', 'margin': '0 auto'})
 
         registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, self.database)
         app.run_server(debug=True)
 
-# Define esto fuera de la clase, o en el mismo módulo global:
 def registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, database):
     @app.callback(
         Output("descarga-json", "data"),
@@ -439,9 +380,7 @@ def registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, database
 
     @app.callback(
         [Output('table-analisis', 'data'),
-         Output('table-check', 'data'),
-         Output('line-graph', 'figure'),
-         Output('graph-checks', 'figure')],
+         Output('table-check', 'data')],
         Input('upload-json', 'contents'),
         prevent_initial_call=True
     )
@@ -456,26 +395,7 @@ def registrar_callbacks(app, check_resultado_dp, analisis_resultado_dp, database
         df_analisis = pd.DataFrame(json_data.get("analisis", []))
         df_checks = pd.DataFrame(json_data.get("checks", []))
 
-        df_analisis['Porcentaje_Numerico'] = df_analisis['Porcentaje'].str.replace('%', '').astype(float)
-        df_checks['Porcentaje_Numerico'] = df_checks['Porcentaje'].str.replace('%', '').astype(float)
-
-        fig_line = px.line(
-            df_analisis, x='instance', y='Porcentaje_Numerico', title='Análisis de Resultados', markers=True
-        )
-        fig_line.update_layout(
-            xaxis_title='', yaxis_title='Porcentaje', yaxis=dict(range=[0, 100]),
-            showlegend=False, plot_bgcolor='white'
-        )
-
-        fig_bar = px.bar(
-            df_checks, x='instance', y='Porcentaje_Numerico', title='Resultados de Checks',
-            color='Porcentaje_Numerico', color_continuous_scale='reds'
-        )
-        fig_bar.update_layout(
-            xaxis_title='', yaxis_title='Porcentaje', showlegend=False, plot_bgcolor='white'
-        )
-
-        return df_analisis.to_dict('records'), df_checks.to_dict('records'), fig_line, fig_bar
+        return df_analisis.to_dict('records'), df_checks.to_dict('records')
 
 
 if __name__ == "__main__":
