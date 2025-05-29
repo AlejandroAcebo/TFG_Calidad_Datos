@@ -121,11 +121,8 @@ class Analisis:
         phone_pattern = r"^(?=(?:\D*\d){9,})[^\p{L}]*$"
         analisis_customer.addAnalyzer(PatternMatch("Phone", phone_pattern))
 
-        # Comprueba que el Title de los clientes no tome valores distintos a Mr. o Ms.
-        analisis_customer.addAnalyzer(Compliance("Title_valido", "Title IN ('Mr.', 'Ms.')"))
-
-        # Los codigos postales pueden contener entre 5 y 7 caracteres debido a que puede tener espacios el cp
-        cp_pattern = r"^[A-Za-z0-9 ]{5,7}$"
+        # Los codigos postales pueden contener entre 5 y 6 caracteres debido a que puede tener espacios el cp
+        cp_pattern = r"^[A-Za-z0-9 ]{5,6}$"
         analisis_address.addAnalyzer(PatternMatch("PostalCode", cp_pattern))
 
         productNumber_pattern = r"^[A-Za-z]{2}-[A-Za-z0-9]{4}-.*$"
@@ -189,8 +186,6 @@ class Analisis:
         check_resultado_category_product_df = self.procesar_dataframe(
             VerificationResult.successMetricsAsDataFrame(self.spark, check_resultado_category_product))
 
-
-
         ############################# LLAMADA PARA ESCRITURA EN BD O GENERACION UI #####################################
         # Si esta en true entonces genera la UI en Dash sino escribe en base de datos
         generacion_ui = True
@@ -232,13 +227,20 @@ class Analisis:
     def ejecutar_verificacion(self,df,check):
         return VerificationSuite(self.spark).onData(df).addCheck(check).run()
 
-    # Metodo que procesa los dataframe, añade la columna porcentaje y el tiempo que se hizo el analisis.
+    # Metodo que procesa los dataframe, añade la columna porcentaje, el tiempo y cambia formatos de columnas.
     def procesar_dataframe(self,df):
         df = df.withColumn(
             "Porcentaje",
             concat((col("value") * 100).cast("int").cast("String"), lit("%"))
         )
-        df = df.withColumn("fechaHora", current_timestamp())
+        df = df.withColumn("Fecha y hora de ejecución", current_timestamp())
+        df = (
+            df.withColumnRenamed("entity", "Tipo test")
+            .withColumnRenamed("instance", "Nombre de indicador")
+            .withColumnRenamed("name", "Tipo test PyDeequ")
+            .withColumnRenamed("value", "Valor")
+        )
+
         return df
 
     def registro_basedatos_analisis(self,tipo,registrar_bd):

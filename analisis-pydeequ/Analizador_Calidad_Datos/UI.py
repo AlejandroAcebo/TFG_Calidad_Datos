@@ -1,3 +1,5 @@
+import datetime
+import io
 import os
 os.environ["SPARK_VERSION"] = "3.5"
 
@@ -44,7 +46,7 @@ def conectar_bd(user, password, server, database):
         return spark, url, properties
 
     except Exception as e:
-        print(f"❌ Error de conexión: {e}")
+        print(f"Error de conexión: {e}")
         return None
 
 
@@ -77,11 +79,9 @@ def ui():
     if "conectado_guardado" not in st.session_state:
         st.session_state["conectado_guardado"] = False
 
-    # Título principal
-    st.title("Analizador calidad de datos")
-
     # Primera conexión a base de datos, si falla se indicará que las credenciales no son correctas.
     if not st.session_state["conectado_analisis"]:
+        st.sidebar.title("DaqLity")
         st.sidebar.header("🔌 Conexión a Base de Datos")
         host = st.sidebar.text_input("Host", value="localhost")
         user = st.sidebar.text_input("Usuario")
@@ -94,83 +94,64 @@ def ui():
             if conn:
                 st.session_state["conn"] = conn
                 st.session_state["conectado_analisis"] = True
-                st.sidebar.success("✅ Conectado para análisis")
+                st.sidebar.success("Conectado para análisis")
             else:
-                st.sidebar.error("❌ Error al conectar para análisis")
-
-    # Este segundo formulario aparece en el momento en el que la conexión con la base de datos a analizar ha
-    # sido correcto
-    if st.session_state["conectado_analisis"]:
-        st.sidebar.subheader("💾 Guardar resultados")
-
-        host_guardar = st.sidebar.text_input("Host", value="localhost", key="host_guardar")
-        user_guardar = st.sidebar.text_input("Usuario", key="user_guardar")
-        password_guardar = st.sidebar.text_input("Contraseña", type="password", key="pass_guardar")
-        database_guardar = st.sidebar.text_input("Base de Datos", key="db_guardar")
-
-        # Se comprueba que al darle a guardar es posible conectar a esa base de datos y que además no esta vació
-        # el dataframe a guardar para no
-        if st.sidebar.button("Conectar para guardar"):
-            conn_guardar = conectar_bd(user_guardar, password_guardar, host_guardar, database_guardar)
-            if conn_guardar:
-                st.session_state["conn_guardar"] = conn_guardar
-                st.session_state["conectado_guardado"] = True
-                st.sidebar.success("✅ Conexión de guardado exitosa")
-            else:
-                st.sidebar.error("❌ Error en la conexión para guardar")
-
-    if st.session_state.get("conectado_guardado"):
-        spark_guardar, url_guardar, props_guardar = st.session_state["conn_guardar"]
-
-        # Desplegable de esquemas
-        try:
-            schemas = listar_schemas(spark_guardar, url_guardar, props_guardar)
-            schema_guardar = st.sidebar.selectbox("Selecciona el esquema", schemas)
-
-            # Desplegable de tablas dentro del esquema
-            tablas = listar_tablas(spark_guardar, url_guardar, props_guardar, schema_guardar)
-            tabla_guardar = st.sidebar.selectbox("Selecciona la tabla", tablas)
-
-            if "seleccion_guardada" not in st.session_state:
-                st.session_state["seleccion_guardada"] = False
-
-            # Botón para guardar la selección en el estado
-            if st.sidebar.button("Guardar selección"):
-                st.session_state["seleccion_guardada"] = True
-                st.session_state["schema_guardar"] = schema_guardar
-                st.session_state["tabla_guardar"] = tabla_guardar
-                st.sidebar.success(f"Esquema y tabla guardados: {schema_guardar}.{tabla_guardar}")
-
-            # Botón para visualizar resultados
-            if st.sidebar.button("Visualizar resultados"):
-                if st.session_state["seleccion_guardada"]:
-
-                    try:
-                        df_vista = spark_guardar.read.jdbc(
-                            url=url_guardar,
-                            table=f"{schema_guardar}.{tabla_guardar}",
-                            properties=props_guardar
-                        )
-                        if df_vista.count() == 0:
-                            st.info("La tabla seleccionada está vacía.")
-                        else:
-                            df_pandas = df_vista.toPandas()
-                            st.subheader(f"Analisis almacenados de: {schema_guardar}.{tabla_guardar}")
-                            st.dataframe(df_pandas)
-                    except Exception as e:
-                        st.error(f"Error al cargar la tabla: {e}")
-                else:
-                    st.sidebar.warning("Selecciona correctamente la tabla.")
-        except Exception as e:
-            st.sidebar.error(f"Error cargando esquemas/tablas: {e}")
+                st.sidebar.error("Error al conectar para análisis")
 
     # 2.Selección de tabla y columna
     if "conn" in st.session_state:
         spark, url, properties = st.session_state["conn"]
+
+        st.sidebar.title("DaqLity")
+
+        # Boton para visualizar resultados
+        json_file = st.sidebar.file_uploader("Visualizar analisis previos", type=["json"])
+        if json_file is not None:
+            try:
+                # Leer y parsear el contenido del archivo
+                json_data = json.load(json_file)
+
+                # Verificar que es una lista de diccionarios (registros)
+                if isinstance(json_data, list) and all(isinstance(row, dict) for row in json_data):
+                    df_cargado = pd.DataFrame(json_data)
+
+                    st.success("Archivo cargado correctamente. Aquí están los resultados:")
+                    st.dataframe(df_cargado)
+
+                    # Guardar en session_state si quieres reutilizar más adelante
+                    st.session_state["df_resultado_cargado"] = df_cargado
+                else:
+                    st.error("El JSON no tiene el formato esperado.")
+
+            except json.JSONDecodeError:
+                st.error("El archivo no es un JSON válido.")
+            except Exception as e:
+                st.error(f"Error al procesar el archivo: {e}")
+
+        # Botón para guardar los resultados como un JSON
+        df = st.session_state.get("df_resultado")
+
+        if df is not None and not df.empty:
+            json_str = df.to_json(orient="records", indent=2, force_ascii=False)
+            json_bytes = io.BytesIO(json_str.encode("utf-8"))
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            file_name = f"resultado_analisis_{timestamp}.json"
+
+            # Botón de descarga
+            st.sidebar.download_button(
+                label="Descargar resultados",
+                data=json_bytes,
+                file_name=file_name,
+                mime="application/json"
+            )
+        else:
+            st.sidebar.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
+
+        # División en columnas
         col_izq, col_der = st.columns(2)
 
         with col_izq:
-
+            st.header("Definición de pruebas")
             # SELECCIÓN Y MOSTRADO DE LOS DIFERENTES ESQUEMAS, TABLAS Y TIPO DE TEST
             schemas = listar_schemas(spark, url, properties)
             schema_seleccionado = st.selectbox("Selecciona un esquema", schemas)
@@ -252,30 +233,25 @@ def ui():
                 st.session_state["tests_seleccionados"].append(test_config)
                 st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
 
+
         with col_der:
-            st.header("Botones de acción")
-
-            # Mostrar botón para guardar resultado en la base de datos registrada
-            if st.button("💾 Guardar resultado"):
-                df = st.session_state.get("df_resultado")
-                # Verificar si se ha seleccionado un esquema y una tabla
-                if not st.session_state.get("schema_guardar") or not st.session_state.get("tabla_guardar"):
-                    st.sidebar.warning("Debes seleccionar un esquema y una tabla antes de guardar los datos.")
-                elif df is not None and not df.rdd.isEmpty():
-
-                    # Comprobar si el DataFrame no está vacío
-                    if st.session_state.get("conectado_guardado"):
-                        try:
-
-                            registro_bd(df, st)
-                        except Exception as e:
-                            st.error(f"Error al guardar los datos: {e}")
-
+            st.header("Conjuntos de pruebas")
+            # Boton para cargar un conjunto de pruebas en formato JSON
+            archivo_test = st.file_uploader("Cargar conjunto de test", type="json")
+            if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
+                try:
+                    tests_cargados = json.load(archivo_test)
+                    if isinstance(tests_cargados, list) and all(isinstance(t, dict) for t in tests_cargados):
+                        if "tests_seleccionados" not in st.session_state:
+                            st.session_state["tests_seleccionados"] = []
+                        st.session_state["tests_seleccionados"].extend(tests_cargados)
+                        st.success(
+                            f"Se han añadido {len(tests_cargados)} tests correctamente. Total: {len(st.session_state['tests_seleccionados'])}")
+                        st.session_state["tests_cargados_flag"] = True  # marca que ya se cargó
                     else:
-                        st.warning("No hay conexión activa para guardar los datos.")
-
-                else:
-                    st.warning("El DataFrame está vacío. No se puede guardar.")
+                        st.error("El archivo JSON no contiene una lista válida de tests.")
+                except Exception as e:
+                    st.error(f"Error al leer el archivo JSON: {e}")
 
             # Boton para descargar el conjunto de pruebas que se han guardado
             if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
@@ -297,24 +273,7 @@ def ui():
             else:
                 st.warning("No hay tests guardados.")
 
-            # Boton para cargar un conjunto de pruebas en formato JSON
-            archivo_test = st.file_uploader("Cargar conjunto de test", type="json")
-            if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
-                try:
-                    tests_cargados = json.load(archivo_test)
-                    if isinstance(tests_cargados, list) and all(isinstance(t, dict) for t in tests_cargados):
-                        if "tests_seleccionados" not in st.session_state:
-                            st.session_state["tests_seleccionados"] = []
-                        st.session_state["tests_seleccionados"].extend(tests_cargados)
-                        st.success(
-                            f"Se han añadido {len(tests_cargados)} tests correctamente. Total: {len(st.session_state['tests_seleccionados'])}")
-                        st.session_state["tests_cargados_flag"] = True  # marca que ya se cargó
-                    else:
-                        st.error("El archivo JSON no contiene una lista válida de tests.")
-                except Exception as e:
-                    st.error(f"Error al leer el archivo JSON: {e}")
-
-        # Ejecución del conjunto de pruebas guardadas o cargadas
+        # Boton para ejecutar todas las pruebas guardadas
         if st.button("Ejecutar todos los análisis"):
             resultado = pd.DataFrame()
             # DataFrame pandas vacío para acumular resultados
@@ -379,6 +338,7 @@ def ui():
 
                 if not resultado.empty:
                     st.dataframe(resultado)
+                    st.session_state["df_resultado"] = resultado
                 else:
                     st.warning("No se generaron resultados para mostrar.")
             else:
@@ -416,9 +376,9 @@ def creacion_dataframe_analyzer(spark,df):
         "Porcentaje",
         concat((col("value") * 100).cast("int").cast("String"), lit("%"))
     )
-    df = df.withColumn("Fecha & Hora", current_timestamp())
+    df = df.withColumn("Fecha y hora de ejecución", current_timestamp())
     df = (df.withColumnRenamed("entity","Tipo test")
-          .withColumnRenamed("instance","Columna/Tabla")
+          .withColumnRenamed("instance","Nombre de indicador")
           .withColumnRenamed("name","Tipo test PyDeequ")
           .withColumnRenamed("value","Valor"))
     return df
