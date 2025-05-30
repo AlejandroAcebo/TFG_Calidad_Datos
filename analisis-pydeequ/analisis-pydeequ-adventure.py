@@ -186,41 +186,25 @@ class Analisis:
         check_resultado_category_product_df = self.procesar_dataframe(
             VerificationResult.successMetricsAsDataFrame(self.spark, check_resultado_category_product))
 
-        ############################# LLAMADA PARA ESCRITURA EN BD O GENERACION UI #####################################
-        # Si esta en true entonces genera la UI en Dash sino escribe en base de datos
-        generacion_ui = True
-        if not generacion_ui:
-            ######################################### ESCRITURA EN BD ##################################################
-            self.registro_basedatos_analisis("analisis",analisis_resultado_customer_df)
-            self.registro_basedatos_analisis("analisis", analisis_resultado_address_df)
-            self.registro_basedatos_analisis("analisis", analisis_resultado_product_df)
+        ############################################# UNION ANALIZADORES ###########################################
+        analisis_resultado_dp = pd.concat(
+             [analisis_resultado_customer_df.toPandas(),
+              analisis_resultado_address_df.toPandas(),
+              analisis_resultado_product_df.toPandas(),
+              analisis_resultado_customer_address_df.toPandas()],
+             ignore_index=True
+        )
 
-            # Escritura de checks
-            self.registro_basedatos_analisis("check",check_resultado_address_df)
-            self.registro_basedatos_analisis("check", check_resultado_customer_df)
-            self.registro_basedatos_analisis("check",check_resultado_product_sales_df)
-            self.registro_basedatos_analisis("check", check_resultado_category_product_df)
-
-        else:
-            ############################################# UNION ANALIZADORES ###########################################
-            analisis_resultado_dp = pd.concat(
-                 [analisis_resultado_customer_df.toPandas(),
-                  analisis_resultado_address_df.toPandas(),
-                  analisis_resultado_product_df.toPandas(),
-                  analisis_resultado_customer_address_df.toPandas()],
-                 ignore_index=True
-            )
-
-            ############################################## UNION CHECKS ################################################
-            check_resultado_dp = pd.concat(
-                [check_resultado_address_df.toPandas(),
-                  check_resultado_customer_df.toPandas(),
-                  check_resultado_product_sales_df.toPandas(),
-                  check_resultado_category_product_df.toPandas()],
-                 ignore_index=True
-            )
-            ################################################# LANZADO DE UI ############################################
-            self.generar_ui_dash(check_resultado_dp, analisis_resultado_dp)
+        ############################################## UNION CHECKS ################################################
+        check_resultado_dp = pd.concat(
+            [check_resultado_address_df.toPandas(),
+              check_resultado_customer_df.toPandas(),
+              check_resultado_product_sales_df.toPandas(),
+              check_resultado_category_product_df.toPandas()],
+             ignore_index=True
+        )
+        ################################################# LANZADO DE UI ############################################
+        self.generar_ui_dash(check_resultado_dp, analisis_resultado_dp)
 
 
     # Correr los run de los checks
@@ -242,40 +226,7 @@ class Analisis:
         )
 
         return df
-
-    def registro_basedatos_analisis(self,tipo,registrar_bd):
-
-        # CONEXIÓN
-        server_register = "localhost"
-        database_register = "RegisterAnalysis"
-        url_register = (f"jdbc:sqlserver://{server_register}:1433;databaseName={database_register};encrypt=false;"
-                        f"trustServerCertificate=true;")
-        properties = {
-            "user": "sa",
-            "password": "root",
-            "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-        }
-
-        # Escritura en la base de datos correspondiente
-        try:
-            global table_name
-            if tipo == "check":
-                table_name = "dbo.check_resultado"
-            elif tipo == "analisis":
-                table_name = "dbo.analisis_resultado"
-
-            registrar_bd.write.jdbc(
-                url=url_register,
-                table=table_name,
-                mode="append",
-                properties=properties
-            )
-        except Exception as e:
-            print(f"Se ha producido una excepcion:  {e} ")
-        finally:
-            print("Se ha escrito correctamente sobre la tabla : " + table_name)
-
-
+        
     # Este metodo se usara si se quiere lanzar de forma web
     def generar_ui_dash(self, check_resultado_dp, analisis_resultado_dp):
         app = dash.Dash(__name__, suppress_callback_exceptions=True)
