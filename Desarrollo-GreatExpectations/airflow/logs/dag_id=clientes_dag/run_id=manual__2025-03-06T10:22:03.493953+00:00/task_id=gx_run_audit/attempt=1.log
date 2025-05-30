@@ -1,0 +1,101 @@
+[2025-03-06T10:22:06.195+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-03-06T10:22:06.214+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T10:22:03.493953+00:00 [queued]>
+[2025-03-06T10:22:06.220+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T10:22:03.493953+00:00 [queued]>
+[2025-03-06T10:22:06.221+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 1
+[2025-03-06T10:22:06.230+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): gx_run_audit> on 2025-03-06 10:22:03.493953+00:00
+[2025-03-06T10:22:06.235+0000] {standard_task_runner.py:63} INFO - Started process 465 to run task
+[2025-03-06T10:22:06.237+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'clientes_dag', 'gx_run_audit', 'manual__2025-03-06T10:22:03.493953+00:00', '--job-id', '4', '--raw', '--subdir', 'DAGS_FOLDER/clientes_dag.py', '--cfg-path', '/tmp/tmpc0t3p99z']
+[2025-03-06T10:22:06.240+0000] {standard_task_runner.py:91} INFO - Job 4: Subtask gx_run_audit
+[2025-03-06T10:22:06.284+0000] {task_command.py:426} INFO - Running <TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T10:22:03.493953+00:00 [running]> on host a3d267d0ec58
+[2025-03-06T10:22:06.576+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='clientes_dag' AIRFLOW_CTX_TASK_ID='gx_run_audit' AIRFLOW_CTX_EXECUTION_DATE='2025-03-06T10:22:03.493953+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-03-06T10:22:03.493953+00:00'
+[2025-03-06T10:22:06.577+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-03-06T10:22:06.604+0000] {file_data_context.py:209} INFO - FileDataContext loading fluent config
+[2025-03-06T10:22:06.606+0000] {config.py:191} INFO - Loading 'datasources' ->
+[{'assets': [...],
+  'connection_string': 'postgresql+psycopg2://postgres:postgres@database/postgres',
+  'id': 'ec26aaf3-15f6-44c8-99b4-d5447be7db07',
+  'name': 'pg_datasource',
+  'type': 'postgres'}]
+[2025-03-06T10:22:06.651+0000] {abstract_data_context.py:2416} INFO - Loaded 'pg_datasource' from fluent config
+[2025-03-06T10:22:06.658+0000] {batch_filter.py:243} INFO - batch_slice: None was parsed to: slice(0, None, None)
+[2025-03-06T10:22:06.659+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.660+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.661+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.661+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.661+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.662+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.662+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.671+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.671+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.672+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.672+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.673+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.673+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.674+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.682+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.682+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.683+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.683+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.684+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.684+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.685+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.692+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.693+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.693+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.694+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.694+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.695+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.695+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.719+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/28 [00:00<?, ?it/s]
+[2025-03-06T10:22:06.720+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/28 [00:00<?, ?it/s]
+[2025-03-06T10:22:06.729+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   7%|7         | 2/28 [00:00<00:00, 214.37it/s]
+[2025-03-06T10:22:06.739+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   7%|7         | 2/28 [00:00<00:00, 103.62it/s]
+[2025-03-06T10:22:06.743+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  14%|#4        | 4/28 [00:00<00:00, 175.47it/s]
+[2025-03-06T10:22:06.751+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  14%|#4        | 4/28 [00:00<00:00, 127.30it/s]
+[2025-03-06T10:22:06.753+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  29%|##8       | 8/28 [00:00<00:00, 240.32it/s]
+[2025-03-06T10:22:06.760+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  29%|##8       | 8/28 [00:00<00:00, 196.74it/s]
+[2025-03-06T10:22:06.770+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  86%|########5 | 24/28 [00:00<00:00, 480.22it/s]
+[2025-03-06T10:22:06.774+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:  86%|########5 | 24/28 [00:00<00:00, 442.66it/s]
+[2025-03-06T10:22:06.778+0000] {logging_mixin.py:188} WARNING - Calculating Metrics: 100%|##########| 28/28 [00:00<00:00, 480.35it/s]
+[2025-03-06T10:22:06.781+0000] {logging_mixin.py:188} WARNING - Calculating Metrics: 100%|##########| 28/28 [00:00<00:00, 455.49it/s]
+[2025-03-06T10:22:06.782+0000] {logging_mixin.py:188} WARNING - Calculating Metrics: 100%|##########| 28/28 [00:00<00:00, 452.91it/s]
+[2025-03-06T10:22:06.782+0000] {logging_mixin.py:188} WARNING - Calculating Metrics: 100%|##########| 28/28 [00:00<00:00, 450.98it/s]
+[2025-03-06T10:22:06.787+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.788+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.789+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.789+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.790+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.790+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.790+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.791+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.792+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.792+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.793+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.793+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.793+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.794+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.794+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.795+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.795+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.796+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.796+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.796+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.797+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.797+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.798+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.798+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.799+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.799+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.800+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.800+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.801+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.801+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.801+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.802+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T10:22:06.996+0000] {unix.py:142} WARNING - /etc/timezone is deprecated on Debian, and no longer reliable. Ignoring.
+[2025-03-06T10:22:07.079+0000] {python.py:237} INFO - Done. Returned value was: None
+[2025-03-06T10:22:07.079+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-03-06T10:22:07.087+0000] {taskinstance.py:1205} INFO - Marking task as SUCCESS. dag_id=clientes_dag, task_id=gx_run_audit, execution_date=20250306T102203, start_date=20250306T102206, end_date=20250306T102207
+[2025-03-06T10:22:07.113+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2025-03-06T10:22:07.129+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-03-06T10:22:07.132+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

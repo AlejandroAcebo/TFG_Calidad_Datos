@@ -1,0 +1,17 @@
+ALTER TABLE clientes
+ADD COLUMN fecha_baja TIMESTAMP;
+
+-- Insertando nuevos clientes con la columna 'fecha_baja'
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, activo) 
+VALUES
+('Luis Fernández', 'luis.fernandez@email.com', '555-2345', '2025-03-05 09:00:00', NULL, TRUE),
+('Elena Rodríguez', 'elena.rodriguez@email.com', '555-6789', '2025-03-04 11:15:00', '2025-03-06 14:00:00', FALSE),
+('Miguel Sánchez', 'miguel.sanchez@email.com', '555-4321', '2025-03-03 13:45:00', '2025-03-04 10:00:00', FALSE),
+('Sofía Martínez', 'sofia.martinez@email.com', '555-8765', '2025-03-02 15:30:00', NULL, TRUE),
+('Daniel García', 'daniel.garcia@email.com', '555-9876', '2025-03-01 18:00:00', '2025-03-03 19:00:00', TRUE);
+
+-- Nuevo cliente con 'fecha_baja' anterior a 'fecha_registro'
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, activo) 
+VALUES
+('Raúl Pérez', 'raul.perez@email.com', '555-1122', '2025-03-10 08:30:00', '2025-03-09 17:30:00', FALSE);
+

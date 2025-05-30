@@ -1,0 +1,39 @@
+-- Tabla de pedidos (relacionada con clientes)
+CREATE TABLE pedidos (
+    id_pedido SERIAL PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) CHECK (total >= 0),
+    estado VARCHAR(20) CHECK (estado IN ('pendiente', 'procesando', 'enviado', 'entregado', 'cancelado')),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+);
+
+-- Tabla de pagos (relacionada con clientes y pedidos)
+CREATE TABLE pagos (
+    id_pago SERIAL PRIMARY KEY,
+    id_pedido INT NOT NULL,
+    id_cliente INT NOT NULL,
+    fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    monto DECIMAL(10,2) CHECK (monto > 0),
+    metodo_pago VARCHAR(20) CHECK (metodo_pago IN ('tarjeta', 'transferencia', 'paypal', 'efectivo')),
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+);
+
+-- Insertar pedidos para clientes existentes
+INSERT INTO pedidos (id_cliente, fecha_pedido, total, estado)
+VALUES
+(1, '2025-03-06 12:00:00', 150.50, 'pendiente'),
+(2, '2025-03-06 13:30:00', 220.00, 'procesando'),
+(3, '2025-03-07 15:45:00', 89.99, 'enviado'),
+(4, '2025-03-08 10:20:00', 315.75, 'entregado'),
+(5, '2025-03-09 18:10:00', 120.00, 'cancelado');
+
+-- Insertar pagos para los pedidos realizados
+INSERT INTO pagos (id_pedido, id_cliente, fecha_pago, monto, metodo_pago)
+VALUES
+(1, 1, '2025-03-06 12:30:00', 150.50, 'tarjeta'),
+(2, 2, '2025-03-06 14:00:00', 220.00, 'transferencia'),
+(3, 3, '2025-03-07 16:00:00', 89.99, 'paypal'),
+(4, 4, '2025-03-08 10:30:00', 315.75, 'efectivo'),
+(5, 5, '2025-03-09 18:30:00', 120.00, 'tarjeta');

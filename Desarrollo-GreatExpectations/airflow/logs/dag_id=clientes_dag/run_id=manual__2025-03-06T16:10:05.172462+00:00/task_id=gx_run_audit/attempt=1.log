@@ -1,0 +1,490 @@
+[2025-03-06T16:10:07.744+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-03-06T16:10:07.763+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T16:10:05.172462+00:00 [queued]>
+[2025-03-06T16:10:07.769+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T16:10:05.172462+00:00 [queued]>
+[2025-03-06T16:10:07.770+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 1
+[2025-03-06T16:10:07.779+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): gx_run_audit> on 2025-03-06 16:10:05.172462+00:00
+[2025-03-06T16:10:07.784+0000] {standard_task_runner.py:63} INFO - Started process 7339 to run task
+[2025-03-06T16:10:07.786+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'clientes_dag', 'gx_run_audit', 'manual__2025-03-06T16:10:05.172462+00:00', '--job-id', '14', '--raw', '--subdir', 'DAGS_FOLDER/clientes_dag.py', '--cfg-path', '/tmp/tmp9y6tp9fe']
+[2025-03-06T16:10:07.789+0000] {standard_task_runner.py:91} INFO - Job 14: Subtask gx_run_audit
+[2025-03-06T16:10:07.822+0000] {task_command.py:426} INFO - Running <TaskInstance: clientes_dag.gx_run_audit manual__2025-03-06T16:10:05.172462+00:00 [running]> on host a3d267d0ec58
+[2025-03-06T16:10:08.066+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='clientes_dag' AIRFLOW_CTX_TASK_ID='gx_run_audit' AIRFLOW_CTX_EXECUTION_DATE='2025-03-06T16:10:05.172462+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-03-06T16:10:05.172462+00:00'
+[2025-03-06T16:10:08.068+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-03-06T16:10:08.094+0000] {file_data_context.py:209} INFO - FileDataContext loading fluent config
+[2025-03-06T16:10:08.096+0000] {config.py:191} INFO - Loading 'datasources' ->
+[{'assets': [...],
+  'connection_string': 'postgresql+psycopg2://postgres:postgres@127.0.0.1/postgres',
+  'id': 'bad4a9d8-6759-4494-897f-ff3a8dc830dd',
+  'name': 'pg_datasource',
+  'type': 'postgres'}]
+[2025-03-06T16:10:08.112+0000] {abstract_data_context.py:2416} INFO - Loaded 'pg_datasource' from fluent config
+[2025-03-06T16:10:08.119+0000] {batch_filter.py:243} INFO - batch_slice: None was parsed to: slice(0, None, None)
+[2025-03-06T16:10:08.121+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.121+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.122+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.123+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.123+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.124+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.124+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.132+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.133+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.133+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.134+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.134+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.135+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.136+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.144+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.144+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.145+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.145+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.146+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.146+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.147+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.155+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.155+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.156+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.156+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.156+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.157+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.157+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.165+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.166+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.166+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.167+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.167+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.168+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.168+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.179+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.179+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.180+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.181+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.181+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.182+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.183+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.195+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.195+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.196+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.196+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.197+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.197+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.197+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.207+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.208+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.209+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.210+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.211+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.212+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.213+0000] {expectation.py:1137} INFO - _get_default_value called with key "table", but it is not a known field
+[2025-03-06T16:10:08.250+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.250+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.293+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.314+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.336+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.357+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.358+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.378+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.399+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   0%|          | 0/61 [00:00<?, ?it/s]
+[2025-03-06T16:10:08.400+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:04, 13.39it/s]
+[2025-03-06T16:10:08.421+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:05, 11.72it/s]
+[2025-03-06T16:10:08.425+0000] {sqlalchemy_execution_engine.py:1041} ERROR - An SQL execution Exception occurred.  OperationalError: "(psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)".  Traceback: "Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1029, in resolve_metric_bundle
+    res = self.execute_query(sa_query_object).fetchall()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1319, in execute_query
+    with self.get_connection() as connection:
+  File "/usr/local/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1304, in get_connection
+    with self.engine.connect() as connection:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+".
+[2025-03-06T16:10:08.448+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:05, 10.14it/s]
+[2025-03-06T16:10:08.450+0000] {sqlalchemy_execution_engine.py:1041} ERROR - An SQL execution Exception occurred.  OperationalError: "(psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)".  Traceback: "Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1029, in resolve_metric_bundle
+    res = self.execute_query(sa_query_object).fetchall()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1319, in execute_query
+    with self.get_connection() as connection:
+  File "/usr/local/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1304, in get_connection
+    with self.engine.connect() as connection:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+".
+[2025-03-06T16:10:08.475+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:03, 16.98it/s]
+[2025-03-06T16:10:08.475+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:03, 16.98it/s]
+[2025-03-06T16:10:08.478+0000] {sqlalchemy_execution_engine.py:1041} ERROR - An SQL execution Exception occurred.  OperationalError: "(psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)".  Traceback: "Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1029, in resolve_metric_bundle
+    res = self.execute_query(sa_query_object).fetchall()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1319, in execute_query
+    with self.get_connection() as connection:
+  File "/usr/local/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/great_expectations/execution_engine/sqlalchemy_execution_engine.py", line 1304, in get_connection
+    with self.engine.connect() as connection:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+           ^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 145, in _do_get
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 690, in __connect
+    with util.safe_reraise():
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/***/.local/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+".
+[2025-03-06T16:10:08.499+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:03, 16.98it/s]
+[2025-03-06T16:10:08.500+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:03, 16.98it/s]
+[2025-03-06T16:10:08.500+0000] {logging_mixin.py:188} WARNING - Calculating Metrics:   3%|3         | 2/61 [00:00<00:07,  8.02it/s]
+[2025-03-06T16:10:08.725+0000] {unix.py:142} WARNING - /etc/timezone is deprecated on Debian, and no longer reliable. Ignoring.
+[2025-03-06T16:10:08.790+0000] {python.py:237} INFO - Done. Returned value was: None
+[2025-03-06T16:10:08.790+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-03-06T16:10:08.797+0000] {taskinstance.py:1205} INFO - Marking task as SUCCESS. dag_id=clientes_dag, task_id=gx_run_audit, execution_date=20250306T161005, start_date=20250306T161007, end_date=20250306T161008
+[2025-03-06T16:10:08.826+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2025-03-06T16:10:08.838+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-03-06T16:10:08.840+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

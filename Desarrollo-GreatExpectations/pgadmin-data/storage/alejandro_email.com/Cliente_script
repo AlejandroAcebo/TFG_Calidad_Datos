@@ -1,0 +1,66 @@
+CREATE TABLE clientes (
+    id_cliente SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    telefono VARCHAR(15) CHECK (telefono ~ '^\d{4}-\d{4}$'),
+    fecha_registro TIMESTAMP,
+    fecha_baja TIMESTAMP,
+    dni VARCHAR(9) UNIQUE,
+    fecha_nacimiento DATE,
+    numero_secuencia INT CHECK (numero_secuencia > 0), -- Restricción de números positivos para secuencia
+    activo BOOLEAN,
+    CHECK (fecha_nacimiento <= CURRENT_DATE - INTERVAL '18 years') -- Asegura que el cliente tiene al menos 18 años
+);
+
+ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_dni_key;  -- Eliminar restricción de DNI único
+ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_numero_secuencia_check;  -- Eliminar restricción de número de secuencia
+ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_telefono_check;
+ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_fecha_nacimiento_check;
+
+
+
+-- Valores perdidos (campo 'telefono' que no debe ser nulo pero está vacío)
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo) 
+VALUES
+('Luis García', 'luis.garcia@email.com', NULL, '2025-03-01 10:30:00', NULL, '12345678Z', '2000-05-15', 1, TRUE);
+
+-- Expresión regular no válida en el número de teléfono (debe ser 4 números, un guion y 4 números)
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo) 
+VALUES
+('Ana Martín', 'ana.martin@email.com', '123-45678', '2025-02-25 09:15:00', NULL, '23456789A', '1995-11-20', 2, TRUE);
+
+-- Número de secuencia negativo (esto debería fallar por la restricción CHECK)
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo) 
+VALUES
+('Pedro Martínez', 'pedro.martinez@email.com', '5555-1234', '2025-03-02 12:00:00', NULL, '34567890B', '1990-03-10', -1, TRUE);
+
+-- Cliente con menos de 18 años (violación de la restricción CHECK para edad mínima)
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo) 
+VALUES
+('Juan Pérez', 'juan.perez@email.com', '5555-5678', '2025-03-05 10:30:00', NULL, '45678901C', '2007-06-20', 4, TRUE);
+
+-- Clientes con el mismo DNI (violación de la restricción UNIQUE)
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo) 
+VALUES
+('María López', 'maria.lopez@email.com', '5555-9012', '2025-02-28 11:00:00', NULL, '12345678Z', '1990-12-15', 5, TRUE),
+('Carlos Gómez', 'carlos.gomez@email.com', '5555-3456', '2025-01-10 14:00:00', NULL, '12345678Z', '1985-08-30', 6, FALSE);
+
+-- Modificar la tabla para añadir los campos cp y poblacion
+ALTER TABLE clientes
+ADD COLUMN cp VARCHAR(10),
+ADD COLUMN poblacion VARCHAR(100);
+
+-- Insertar nuevos clientes con los requisitos solicitados
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo, cp, poblacion)
+VALUES
+('Laura Sánchez', 'laura.sanchez@email.com', '5555-1122', '2025-03-06 11:00:00', NULL, '67890123A', '1998-04-22', 7, TRUE, '28001', 'Madrid'),
+('Miguel Ruiz', 'miguel.ruiz@email.com', '5555-3344', '2025-03-06 12:00:00', NULL, '78901234B', '1985-08-15', 8, TRUE, '28001', 'Madrid'),
+('Ana Pérez', 'ana.perez@email.com', '5555-7788', '2025-03-07 13:00:00', NULL, '89012345C', '1992-07-10', 9, FALSE, '28002', 'Valencia'),
+('Pedro Gómez', 'pedro.gomez@email.com', '5555-9988', '2025-03-08 14:00:00', NULL, '90123456D', '2001-02-20', 10, TRUE, '28002', 'Valencia'),
+('Lucía Torres', 'lucia.torres@email.com', '5555-6677', '2025-03-09 15:00:00', NULL, '12345678E', '1993-11-25', 11, TRUE, '28001', 'Madrid');
+
+
+-- Insert que el cp es distinto del nombre de la poblacion
+INSERT INTO clientes (nombre, email, telefono, fecha_registro, fecha_baja, dni, fecha_nacimiento, numero_secuencia, activo, cp, poblacion)
+VALUES
+('Laura2', 'laura@email.com', '5553-1122', '2025-03-06 11:00:00', NULL, '67890123B', '1998-04-22', 7, TRUE, '28001', 'Cuenca')
