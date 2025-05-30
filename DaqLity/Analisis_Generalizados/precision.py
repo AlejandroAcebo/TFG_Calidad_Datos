@@ -11,10 +11,11 @@ def analizar_precision(spark,df,column,decimales):
     columna_string = f"{column}_string"
     df = df.withColumn(columna_string, col(column).cast("string"))
     decimal_pattern = rf'^\d+\.\d{{{decimales},}}$'
+
     resultado = (
         AnalysisRunner(spark)
         .onData(df)
-        .addAnalyzer(PatternMatch(columna_string,decimal_pattern))
+        .addAnalyzer(PatternMatch(columna_string,decimal_pattern).withTag(""))
         .run()
     )
     return resultado

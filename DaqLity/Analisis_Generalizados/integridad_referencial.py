@@ -7,7 +7,7 @@ from pyspark.sql.functions import col
 
 from pydeequ.analyzers import AnalysisRunner, Completeness, AnalyzerContext
 
-def analizar_consistencia(spark, df_tabla1, df_tabla2, columna, columna2):
+def analizar_integridad_referencial(spark, df_tabla1, df_tabla2, columna, columna2):
 
     df_validacion = (df_tabla1.join(df_tabla2, on=columna, how="left")
                      .withColumn("es_correcto",col(columna2).isNotNull()))
@@ -19,7 +19,7 @@ def analizar_consistencia(spark, df_tabla1, df_tabla2, columna, columna2):
     check_resultado_tablas = (Check(spark, CheckLevel.Warning
                             , f"Comprobacion consistencia f{df_tabla1} y f{df_tabla2}")
                             .satisfies(f"{porcentaje_validos} >= 0.0"
-                            , "Porcentaje de ventas con productos que existen"))
+                            , "Integridad referencial"))
 
     check_resultado = VerificationSuite(spark).onData(df_tabla1).addCheck(check_resultado_tablas).run()
     return check_resultado

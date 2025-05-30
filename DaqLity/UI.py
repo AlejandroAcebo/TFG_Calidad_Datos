@@ -4,7 +4,7 @@ import os
 os.environ["SPARK_VERSION"] = "3.5"
 
 import pandas as pd
-from Analisis_Generalizados.consistencia import analizar_consistencia
+from Analisis_Generalizados.integridad_referencial import analizar_integridad_referencial
 from Analisis_Generalizados.credibilidad import analizar_credibilidad
 from Analisis_Generalizados.exactitud import analizar_exactitud
 from Analisis_Generalizados.precision import analizar_precision
@@ -162,7 +162,7 @@ def ui():
             columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
             columna = st.selectbox("Selecciona una columna", columnas)
             print(columna)
-            tipo_analisis = st.selectbox("Selecciona el tipo de análisis", ["Completitud","Credibilidad","Consistencia"
+            tipo_analisis = st.selectbox("Selecciona el tipo de análisis", ["Completitud","Credibilidad","Integridad Referencial"
                 ,"Exactitud","Precision","Actualidad"])
 
             # INTRODUCCIÓN DE NUEVOS SELECCIONABLES O CUADROS DE TEXTO DEPENDIENDO DEL TIPO DE TEST
@@ -189,7 +189,7 @@ def ui():
                     num_decimales = st.text_input("Introduce la cantidad de decimales que debe tener la columna,"
                                                       "solo número entero")
 
-                case "Consistencia":
+                case "Integridad Referencial":
                     tablas_opciones = [t for t in tablas if t != tabla_seleccionada]
                     tabla_seleccionada_2 = st.selectbox("Selecciona segunda tabla", tablas_opciones)
 
@@ -220,7 +220,7 @@ def ui():
                         test_config["tipo_credibilidad"] = tipo_credibilidad
                     case "Precision":
                         test_config["num_decimales"] = num_decimales
-                    case "Consistencia":
+                    case "Integridad Referencial":
                         test_config["columna_2"] = columna_2
                         test_config["tabla_2"] = tabla_seleccionada_2
                     case "Actualidad":
@@ -314,9 +314,9 @@ def ui():
                                 res = analizar_precision(spark, df, columna, num_decimales)
                                 df_resultado = AnalyzerContext.successMetricsAsDataFrame(spark, res)
 
-                            case "Consistencia":
+                            case "Integridad Referencial":
                                 df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
-                                res = analizar_consistencia(spark, df, df_2, columna, columna_2)
+                                res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
                                 df_resultado = VerificationResult.successMetricsAsDataFrame(spark, res)
 
                             case "Actualidad":
