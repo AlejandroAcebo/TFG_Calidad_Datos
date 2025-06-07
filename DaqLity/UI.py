@@ -343,32 +343,7 @@ def ui():
                     st.warning("No se generaron resultados para mostrar.")
             else:
                 st.warning("No hay tests guardados.")
-
-
-def registro_bd(df, st):
-    try:
-        # Obtener parámetros de conexión
-        spark_guardar, url_guardar, props_guardar = st.session_state["conn_guardar"]
-
-        # Obtener tabla y esquema guardados del estado
-        schema_guardar = st.session_state.get("schema_guardar")
-        tabla_guardar = st.session_state.get("tabla_guardar")
-
-
-        tabla_guardar_bd = f"{schema_guardar}.{tabla_guardar}"
-
-        # Escribir el DataFrame
-        df.write.jdbc(
-            url=url_guardar,
-            table=tabla_guardar_bd,
-            mode="append",
-            properties=props_guardar
-        )
-        st.success(f"Datos guardados correctamente en la tabla: {tabla_guardar_bd}")
-
-    except Exception as e:
-        st.error(f"Error al guardar los datos: {e}")
-
+                
 
 # Metodo que añade porcentaje, fecha y hora y cambia el nombre de las columnas que no tiene sentido el nombre
 def creacion_dataframe_analyzer(spark,df):
