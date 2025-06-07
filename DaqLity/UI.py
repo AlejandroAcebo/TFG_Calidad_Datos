@@ -325,7 +325,7 @@ def ui():
 
                         # Si df_resultado es None o vacío, se omite concatenar
                         if df_resultado and df_resultado.count() > 0:
-                            df_resultado_formateado = creacion_dataframe_analyzer(spark, df_resultado)
+                            df_resultado_formateado = creacion_dataframe(spark, df_resultado)
                             df_pandas = df_resultado_formateado.toPandas()
                             resultado = pd.concat(
                                 [resultado, df_pandas], ignore_index=True
@@ -346,7 +346,7 @@ def ui():
                 
 
 # Metodo que añade porcentaje, fecha y hora y cambia el nombre de las columnas que no tiene sentido el nombre
-def creacion_dataframe_analyzer(spark,df):
+def creacion_dataframe(spark,df):
     df = df.withColumn(
         "Porcentaje",
         concat((col("value") * 100).cast("int").cast("String"), lit("%"))
