@@ -198,7 +198,7 @@ def ui():
 
                 case "Actualidad":
                     tiempo_limite = st.text_input("Introduce la fecha maxima que deberia tener la columna")
-                    st.caption("Un ejemplo sería: ")
+                    st.caption("Un ejemplo sería: 2006-01-01 00:00:00")
 
 
             # Boton para almacenar test en conjunto de pruebas
@@ -308,8 +308,7 @@ def ui():
                             case "Credibilidad":
                                 res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
                                 df_resultado = AnalyzerContext.successMetricsAsDataFrame(spark, res)
-                                st.write("DataFrame de métricas:", df_resultado)
-
+                                
                             case "Precision":
                                 res = analizar_precision(spark, df, columna, num_decimales)
                                 df_resultado = AnalyzerContext.successMetricsAsDataFrame(spark, res)
