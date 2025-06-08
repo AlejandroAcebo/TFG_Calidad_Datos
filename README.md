@@ -1,3 +1,7 @@
+# Trabajo de Fin de Grado : Alejandro Acebo
+
+En este trabajo se ha persiguido el desarrollo de una herramienta para analizar la calidad de los datos con objeto de que usuarios no expertos en la programación puedan poner bajo análisis la calidad de sus datos.
+
 ## Estructura del Proyecto
 
 ```plaintext
@@ -17,7 +21,7 @@ TFG_Calidad_Datos/
 └── conjunto_test_plan_de_calidad.josn       # Conjunto de pruebas definidas en el plan de calidad recogidas en archivo JSON
 ```
 
-# 🧪 DaqLity: Herramienta para el Análisis de la Calidad de los Datos
+##  DaqLity: Herramienta para el Análisis de la Calidad de los Datos
 
 **DaqLity** es una herramienta interactiva desarrollada como parte de un Trabajo de Fin de Grado (TFG) en Ingeniería Informática. Su objetivo principal es facilitar el análisis y la visualización de la calidad de conjuntos de datos, empleando tecnologías como Apache Spark y Streamlit.
 
