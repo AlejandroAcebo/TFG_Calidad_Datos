@@ -1,6 +1,9 @@
 import datetime
 import io
 import os
+
+from PIL.ImageOps import expand
+
 os.environ["SPARK_VERSION"] = "3.5"
 
 import pandas as pd
@@ -114,6 +117,11 @@ def ui():
                 # Verificar que es una lista de diccionarios (registros)
                 if isinstance(json_data, list) and all(isinstance(row, dict) for row in json_data):
                     df_cargado = pd.DataFrame(json_data)
+                    if 'Fecha y hora de ejecución' in df_cargado.columns:
+                        try:
+                            df_cargado['Fecha y hora de ejecución'] = pd.to_datetime(df_cargado['Fecha y hora de ejecución'])
+                        except Exception as e:
+                            st.warning("Error al convertir la fecha")
 
                     st.success("Archivo cargado correctamente. Aquí están los resultados:")
                     st.dataframe(df_cargado)
@@ -132,6 +140,8 @@ def ui():
         df = st.session_state.get("df_resultado")
 
         if df is not None and not df.empty:
+            if 'Fecha y hora de ejecución' in df.columns:
+                df['Fecha y hora de ejecución'] = df['Fecha y hora de ejecución'].astype(str)
             json_str = df.to_json(orient="records", indent=2, force_ascii=False)
             json_bytes = io.BytesIO(json_str.encode("utf-8"))
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -308,7 +318,7 @@ def ui():
                             case "Credibilidad":
                                 res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
                                 df_resultado = AnalyzerContext.successMetricsAsDataFrame(spark, res)
-                                
+
                             case "Precision":
                                 res = analizar_precision(spark, df, columna, num_decimales)
                                 df_resultado = AnalyzerContext.successMetricsAsDataFrame(spark, res)
@@ -319,19 +329,18 @@ def ui():
                                 df_resultado = VerificationResult.successMetricsAsDataFrame(spark, res)
 
                             case "Actualidad":
-                                res = analizar_actualidad(spark, df, columna, tiempo_limite)
+                                res = analizar_actualidad(spark, df, columna, tiempo_limite,tabla)
                                 df_resultado = VerificationResult.successMetricsAsDataFrame(spark, res)
 
                         # Si df_resultado es None o vacío, se omite concatenar
                         if df_resultado and df_resultado.count() > 0:
-                            df_resultado_formateado = creacion_dataframe(spark, df_resultado)
+                            df_resultado_formateado = creacion_dataframe_analyzer(spark, df_resultado)
                             df_pandas = df_resultado_formateado.toPandas()
                             resultado = pd.concat(
                                 [resultado, df_pandas], ignore_index=True
                             )
                         else:
                             st.warning(f"No hay resultados para el test: {test}")
-
                     except Exception as e:
                         st.error(f"Error en la ejecución del test: {e}")
 
@@ -342,10 +351,9 @@ def ui():
                     st.warning("No se generaron resultados para mostrar.")
             else:
                 st.warning("No hay tests guardados.")
-                
 
 # Metodo que añade porcentaje, fecha y hora y cambia el nombre de las columnas que no tiene sentido el nombre
-def creacion_dataframe(spark,df):
+def creacion_dataframe_analyzer(spark,df):
     df = df.withColumn(
         "Porcentaje",
         concat((col("value") * 100).cast("int").cast("String"), lit("%"))

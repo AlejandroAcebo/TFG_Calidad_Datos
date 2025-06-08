@@ -15,7 +15,7 @@ def analizar_precision(spark,df,column,decimales):
     resultado = (
         AnalysisRunner(spark)
         .onData(df)
-        .addAnalyzer(PatternMatch(columna_string,decimal_pattern).withTag(""))
+        .addAnalyzer(PatternMatch(columna_string,decimal_pattern))
         .run()
     )
     return resultado
