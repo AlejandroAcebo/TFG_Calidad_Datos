@@ -76,7 +76,7 @@ streamlit run UI.py
 
 ### 6. Acceder a la interfaz web
 
-Al ejecutar la herramienta, en la terminal aparecerán dos URLs importantes:
+Al ejecutar la herramienta, en la terminal aparecerán dos URLs:
 
 - **Local URL:** permite acceder desde el navegador del equipo local, por ejemplo:
 _http://localhost:8501_
