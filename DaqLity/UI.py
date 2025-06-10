@@ -52,7 +52,7 @@ def cargar_archivo(archivo):
         # Iniciar SparkSession si no existe
         if 'spark' not in globals():
             spark = SparkSession.builder \
-                .appName("Carga desde Archivo") \
+                .appName("📁 Carga desde Archivo") \
                 .config("spark.sql.shuffle.partitions", "8") \
                 .getOrCreate()
         else:
@@ -192,7 +192,7 @@ def ui():
             esquema_nombre = nombre_archivo
 
         # Boton para visualizar resultados
-        json_file = st.sidebar.file_uploader("Visualizar analisis previos", type=["json"])
+        json_file = st.sidebar.file_uploader("🔍 Visualizar analisis previos", type=["json"])
         if json_file is not None:
             try:
                 # Leer y parsear el contenido del archivo
@@ -233,7 +233,7 @@ def ui():
 
             # Botón de descarga
             st.sidebar.download_button(
-                label="Descargar resultados",
+                label="📤 Descargar resultados",
                 data=json_bytes,
                 file_name=file_name,
                 mime="application/json"
@@ -351,14 +351,14 @@ def ui():
                         test_config["tiempo_limite"] = tiempo_limite
 
             # Guardar test
-            if st.button("Guardar test", disabled= not valido):
+            if st.button("💾 Guardar test", disabled= not valido):
                 st.session_state.setdefault("tests_seleccionados", []).append(test_config)
                 st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
 
         with col_der:
             st.header("Conjuntos de pruebas")
             # Boton para cargar un conjunto de pruebas en formato JSON
-            archivo_test = st.file_uploader("Cargar conjunto de test", type="json")
+            archivo_test = st.file_uploader("📁 Cargar conjunto de test", type="json")
             if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
                 try:
                     tests_cargados = json.load(archivo_test)
@@ -386,7 +386,7 @@ def ui():
                 buffer.seek(0)
 
                 st.download_button(
-                    label="Descargar conjunto de test",
+                    label="📤 Descargar conjunto de test",
                     data=buffer,
                     file_name="tests_guardados.json",
                     mime="application/json"
@@ -395,7 +395,7 @@ def ui():
                 st.warning("No hay tests guardados.")
 
         # Boton para ejecutar todas las pruebas guardadas
-        if st.button("Ejecutar todos los análisis"):
+        if st.button("▶️ Ejecutar el conjunto de pruebas"):
             resultado = pd.DataFrame()
             if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
                 for test in st.session_state["tests_seleccionados"]:
