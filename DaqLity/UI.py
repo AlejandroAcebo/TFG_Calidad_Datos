@@ -1,9 +1,6 @@
 import datetime
 import io
 import os
-
-
-
 os.environ["SPARK_VERSION"] = "3.5"
 
 import pandas as pd
@@ -16,13 +13,11 @@ from Analisis_Generalizados.actualidad import analizar_actualidad
 from io import BytesIO
 from pyspark.sql.functions import concat, col, lit, current_timestamp
 from pyspark.sql import functions as F
-
 from pydeequ.verification import VerificationResult
 from pydeequ.analyzers import AnalyzerContext
 import streamlit as st
 import json
 from pyspark.sql import SparkSession
-
 
 def conectar_bd(user, password, server, database):
     try:
