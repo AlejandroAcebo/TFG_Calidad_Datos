@@ -2,7 +2,11 @@
 
 En este trabajo se ha persiguido el desarrollo de una herramienta para analizar la calidad de los datos con objeto de que usuarios no expertos en la programación puedan poner bajo análisis la calidad de sus datos.
 
+<<<<<<< HEAD
 ## Estructura del Proyecto
+=======
+## 📁 Estructura del Proyecto
+>>>>>>> refs/remotes/origin/main
 
 ```plaintext
 TFG_Calidad_Datos/
