@@ -1,7 +1,7 @@
 import os
 os.environ["SPARK_VERSION"] = "3.5"
 from pydeequ.analyzers import AnalysisRunner, PatternMatch, Compliance
-
+from pyspark.sql import functions as F
 
 def analizar_credibilidad(spark,df,column,patron,tipo):
     global resultado
@@ -23,5 +23,4 @@ def analizar_credibilidad(spark,df,column,patron,tipo):
             .addAnalyzer(Compliance("Validos", condicion))
             .run()
         )
-
     return resultado
