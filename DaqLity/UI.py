@@ -19,8 +19,6 @@ import streamlit as st
 import json
 from pyspark.sql import SparkSession
 
-
-
 def ui():
     """
     Gestión de toda la parte de la interfaz sobre esta se define el comportamiento y la apariencia de la misma.
@@ -670,6 +668,8 @@ def generar_df_modificado(spark, res, tipo_ejecucion, tipo, *componentes):
     else:
         raise ValueError("Tipo de ejecucion no soportado")
 
+    # Elimina la columna que genera PyDeequ de tipo de test de PyDeequ ya que para el usuario final no tiene sentido.
+    df_resultado = df_resultado.drop("name")
     return df_resultado.withColumn(
         "instance",
         concat_ws("_", *[lit(str(c)) for c in (tipo, *componentes)])
@@ -696,10 +696,7 @@ def creacion_dataframe_personalizado(spark,df):
     df = df.withColumn("Fecha y hora de ejecución", current_timestamp())
     df = (df.withColumnRenamed("entity","Tipo test")
           .withColumnRenamed("instance","Nombre de indicador")
-          .withColumnRenamed("name","Tipo test PyDeequ")
           .withColumnRenamed("value","Valor"))
-    # Esto se puede eliminar, ya que no da mucha informacion, preguntar y sino quitar también en los resultados
-    df = df.drop("Tipo test PyDeequ")
     return df
 
 
