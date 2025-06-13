@@ -72,6 +72,8 @@ export PATH=$JAVA_HOME/bin:$PATH
 pip install streamlit
 pip install pyspark==3.5.0
 pip install --upgrade setuptools wheel
+pip install plotly
+pip install pydeequ
 ```
 
 ### 5. Ejecutar la herramienta

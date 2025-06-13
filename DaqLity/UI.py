@@ -16,6 +16,7 @@ from pyspark.sql import functions as F
 from pydeequ.verification import VerificationResult
 from pydeequ.analyzers import AnalyzerContext
 import streamlit as st
+import plotly.express as px
 import json
 from pyspark.sql import SparkSession
 
@@ -27,120 +28,220 @@ def ui():
     global patron, tabla_seleccionada_2, columna_2, tipo_exactitud,\
         tipo_credibilidad, num_decimales,schema_guardar, tabla_guardar, \
         tiempo_limite, df_pandas, columnas, tabla_nombre, esquema_nombre, \
-        spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado
+        spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado,\
+        archivos
 
     # Titulo de la herramienta
-    st.sidebar.title("DaqLity")
+    if 'page' not in st.session_state:
+        st.session_state.page = 'inicio'
 
-    default_session_state = {
-        "conectado_analisis": False,
-        "seleccionada_fuente": False,
-        "nombre_archivo": False,
-    }
+    if st.session_state.page == 'inicio':
+        st.sidebar.title("DaqLity")
 
-    # Si no estan inicializadas las st.session se inicializan
-    for key, default in default_session_state.items():
-        if key not in st.session_state:
-            st.session_state[key] = default
+        default_session_state = {
+            "conectado_analisis": False,
+            "seleccionada_fuente": False,
+            "nombre_archivo": False,
+        }
 
-    # Selección tipo de fuente de datos, si no hay conexión todavía
-    seleccion_conexion()
+        # Si no estan inicializadas las st.session se inicializan
+        for key, default in default_session_state.items():
+            if key not in st.session_state:
+                st.session_state[key] = default
 
-    # Selección de tabla y columna
-    if "conn" in st.session_state or "df_archivo" in st.session_state:
-        if "conn" in st.session_state:
-            spark, url, properties = st.session_state["conn"]
+        # Selección tipo de fuente de datos, si no hay conexión todavía
+        seleccion_conexion()
 
-        elif "df_archivo" in st.session_state:
-            df_spark = st.session_state["df_archivo"]
-            df_pandas = df_spark.toPandas()
-            columnas = df_pandas.columns.tolist()
-            nombre_archivo = st.session_state["nombre_archivo"]
-            tabla_nombre = os.path.splitext(nombre_archivo)[0]
-            esquema_nombre = nombre_archivo
-
-        # Boton para visualizar resultados
-        json_file = st.sidebar.file_uploader("🔍 Visualizar analisis previos", type=["json"])
-        if json_file is not None:
-            visualizar_resultados(json_file)
-
-        # Botón para guardar los resultados como un JSON
-        df = st.session_state.get("df_resultado")
-
-        if df is not None and not df.empty:
-            descargar_resultados(df)
-        else:
-            st.sidebar.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
-
-        # División en columnas
-        col_izq, col_der = st.columns(2)
-
-        with col_izq:
-            st.header("Definición de pruebas")
-            # Si hay conexión a base de datos
+        # Selección de tabla y columna
+        if "conn" in st.session_state or "df_archivo" in st.session_state:
             if "conn" in st.session_state:
                 spark, url, properties = st.session_state["conn"]
-                schemas = listar_schemas(spark, url, properties)
-                schema_seleccionado = st.selectbox("Selecciona un esquema", schemas)
-                tablas = listar_tablas(spark, url, properties, schema_seleccionado)
-                tabla_seleccionada = st.selectbox("Selecciona una tabla", tablas)
-                columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
-                tabla_nombre = tabla_seleccionada
-                esquema_nombre = schema_seleccionado
 
-            # Si hay un archivo CSV/JSON cargado
-            elif "df_cargado" in st.session_state:
-                df_cargado = st.session_state["df_cargado"]
-                columnas = df_cargado.columns.tolist()
+            elif "df_archivo" in st.session_state:
+                df_spark = st.session_state["df_archivo"]
+                df_pandas = df_spark.toPandas()
+                columnas = df_pandas.columns.tolist()
                 nombre_archivo = st.session_state["nombre_archivo"]
                 tabla_nombre = os.path.splitext(nombre_archivo)[0]
                 esquema_nombre = nombre_archivo
 
-            # Seleccionar columna y tipo de análisis que lo tienen ambos
-            columna = st.selectbox("Selecciona una columna", columnas)
-            tipo_analisis = st.selectbox("Selecciona el tipo de análisis", [
-                "Completitud", "Credibilidad", "Integridad Referencial",
-                "Exactitud", "Precision", "Actualidad"
-            ])
+            # Creacion de una nueva pagina solo para ver la evaluación
+            if st.sidebar.button("📊 Ir a evaluación", on_click=ir_evaluacion):
+                st.session_state.page = 'evaluacion'
 
-            test_config = {
-                "tipo": tipo_analisis,
-                "columna": columna,
-                "tabla": tabla_nombre,
-                "schema": esquema_nombre
-            }
+            # Boton para visualizar resultados
+            json_file = st.sidebar.file_uploader("🔍 Visualizar analisis previos", type=["json"])
+            if json_file is not None:
+                visualizar_resultados(json_file)
 
-            # Gestion de la interfaz de acuerdo al tipo de test seleccionado
-            valido = True
-            valido = gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccionada, tablas,
-                                          test_config, tipo_analisis, url, valido)
+            # Botón para guardar los resultados como un JSON
+            df = st.session_state.get("df_resultado")
 
-            # Guardar test
-            if st.button("💾 Guardar test", disabled= not valido):
-                st.session_state.setdefault("tests_seleccionados", []).append(test_config)
-                st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
-
-        with col_der:
-            st.header("Conjuntos de pruebas")
-            # Boton para cargar un conjunto de pruebas en formato JSON
-            archivo_test = st.file_uploader("📁 Cargar conjunto de test", type="json")
-            if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
-                cargar_conjunto_test(archivo_test)
-
-            # Boton para descargar el conjunto de pruebas que se han guardado
-            if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                descargar_conjunto_test()
+            if df is not None and not df.empty:
+                descargar_resultados(df)
             else:
-                st.warning("No hay tests guardados.")
+                st.sidebar.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
 
-        # Boton para ejecutar todas las pruebas guardadas
-        if st.button("▶️ Ejecutar el conjunto de pruebas"):
-            resultado = pd.DataFrame()
-            if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                gestion_ejecucion_test(resultado)
-            else:
-                st.warning("No hay tests guardados.")
+            # División en columnas
+            col_izq, col_der = st.columns(2)
 
+            with col_izq:
+                st.header("Definición de pruebas")
+                # Si hay conexión a base de datos
+                if "conn" in st.session_state:
+                    spark, url, properties = st.session_state["conn"]
+                    schemas = listar_schemas(spark, url, properties)
+                    schema_seleccionado = st.selectbox("Selecciona un esquema", schemas)
+                    tablas = listar_tablas(spark, url, properties, schema_seleccionado)
+                    tabla_seleccionada = st.selectbox("Selecciona una tabla", tablas)
+                    columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
+                    tabla_nombre = tabla_seleccionada
+                    esquema_nombre = schema_seleccionado
+
+                # Si hay un archivo CSV/JSON cargado
+                elif "df_cargado" in st.session_state:
+                    df_cargado = st.session_state["df_cargado"]
+                    columnas = df_cargado.columns.tolist()
+                    nombre_archivo = st.session_state["nombre_archivo"]
+                    tabla_nombre = os.path.splitext(nombre_archivo)[0]
+                    esquema_nombre = nombre_archivo
+
+                # Seleccionar columna y tipo de análisis que lo tienen ambos
+                columna = st.selectbox("Selecciona una columna", columnas)
+                tipo_analisis = st.selectbox("Selecciona el tipo de análisis", [
+                    "Completitud", "Credibilidad", "Integridad Referencial",
+                    "Exactitud", "Precision", "Actualidad"
+                ])
+
+                test_config = {
+                    "tipo": tipo_analisis,
+                    "columna": columna,
+                    "tabla": tabla_nombre,
+                    "schema": esquema_nombre
+                }
+
+                # Gestion de la interfaz de acuerdo al tipo de test seleccionado
+                valido = True
+                valido = gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccionada, tablas,
+                                              test_config, tipo_analisis, url, valido)
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Guardar test
+                    if st.button("💾 Guardar test", disabled= not valido):
+                        st.session_state.setdefault("tests_seleccionados", []).append(test_config)
+                        st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
+                with col2:
+                    eliminar = False
+                    if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+                        eliminar = True
+                    if st.button("🗑️ Test anterior",disabled= not eliminar):
+                        if st.session_state["tests_seleccionados"]:
+                            st.session_state.setdefault("tests_seleccionados", []).pop()
+                            st.success(f"Ultimo test eliminado correctamente.")
+                        else:
+                            st.error("No hay tests guardados actualmente.")
+
+            with col_der:
+                st.header("Conjuntos de pruebas")
+                # Boton para cargar un conjunto de pruebas en formato JSON
+                archivo_test = st.file_uploader("📁 Cargar conjunto de test", type="json")
+                if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
+                    cargar_conjunto_test(archivo_test)
+
+                # Boton para descargar el conjunto de pruebas que se han guardado
+                if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+                    descargar_conjunto_test()
+                else:
+                    st.warning("No hay tests guardados.")
+
+                if st.button("🧹 Eliminar todas las pruebas"):
+                    if st.session_state["tests_seleccionados"]:
+                        st.session_state["tests_seleccionados"].clear()
+                        st.success("Todas las pruebas han sido eliminadas.")
+                    else:
+                        st.warning("El conjunto de pruebas esta vacio")
+
+            # Boton para ejecutar todas las pruebas guardadas
+            if st.button("▶️ Ejecutar el conjunto de pruebas"):
+                resultado = pd.DataFrame()
+                if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+                    gestion_ejecucion_test(resultado)
+                else:
+                    st.warning("No hay tests guardados.")
+
+    elif st.session_state.page == 'evaluacion':
+        st.title("📊 Evaluación histórico de datos")
+        # Funcionalidad para ver histórico cargando múltiples archivos
+        archivos = st.sidebar.file_uploader("Sube tus archivos", type=["json"], accept_multiple_files=True)
+        st.sidebar.button("↩️ Volver atrás",on_click=ir_inicio)
+        gestion_evolucion_analisis(archivos)
+
+
+def ir_inicio():
+    """
+    Cambia de pagina a la pagina de inicio
+    """
+    st.session_state.page = "inicio"
+
+
+def ir_evaluacion():
+    """
+    Cambia de pagina a la pagina de evaluacion
+    """
+    st.session_state.page = "evaluacion"
+
+
+def gestion_evolucion_analisis(archivos):
+    """
+    Gestiona todos los archivos que se suben y recoge los parametros de "Nombre de indicador, Porcentaje y Fecha y hora
+    de ejecucion" con el fin de crear una gráfica de líneas en el que cada color es un análisis diferente y en este el
+    eje de las X es el nombre del indicador y el eje de las Y es el porcentaje obtenido del análisis. Luego tambien en
+    el lateral esta una leyenda con la fecha del analisis.
+
+    Args:
+        archivos ([File json]): conjunto de archivos json con resultados de analisis.
+    """
+
+    global archivo
+    if archivos:
+        st.sidebar.success(f"Se cargaron {len(archivos)} archivos")
+        df_final = []
+        for archivo in archivos:
+            try:
+                df = pd.read_json(archivo)
+                if {"Nombre de indicador", "Porcentaje", "Fecha y hora de ejecución"}.issubset(df.columns):
+                    df_filtrado = df[["Nombre de indicador", "Porcentaje", "Fecha y hora de ejecución"]].copy()
+
+                    fecha_analisis = df_filtrado["Fecha y hora de ejecución"].iloc[0]
+                    df_filtrado["Evaluacion"] = f"{fecha_analisis}"
+                    df_final.append(df_filtrado)
+                else:
+                    st.warning(f"{archivo.name} no es correcto o no esta bien estructurado")
+            except:
+                st.error(f"Error al leer {archivo.name}")
+
+        if df_final:
+            df_combinado = pd.concat(df_final, ignore_index=True)
+
+            # Gráfica de líneas
+            fig = px.line(
+                df_combinado,
+                x="Nombre de indicador",
+                y="Porcentaje",
+                color="Evaluacion",
+                markers=True,
+                title="Evolución de Indicadores por Fecha de Evaluación"
+            )
+
+            fig.update_layout(
+                xaxis_title="Nombre de indicador",
+                yaxis_title="Porcentaje (%)",
+                legend_title="Evaluacion",
+                hovermode="x unified"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
 def gestion_ejecucion_test(resultado):
     """
@@ -573,8 +674,6 @@ def visualizar_resultados(json_file):
 
     except json.JSONDecodeError:
         st.error("El archivo no es un JSON válido.")
-    except Exception as e:
-        st.error(f"Error al procesar el archivo: {e}")
 
 
 def descargar_resultados(df):
