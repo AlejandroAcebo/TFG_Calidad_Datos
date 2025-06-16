@@ -22,17 +22,6 @@ import plotly.express as px
 import json
 from pyspark.sql import SparkSession
 
-#poder conectar con postgresql,
-#comprobar integridad referencial de csv, que haya tipo empleado (Id empleado, ) integridad que pueda seleccionar misma tabla
-# pasar el sonarqube para ver la calidad del codigo
-#plan de pruebas, mirar apuntes patri (calidad de pruebas y sw)
-# control formato csv y json poner texto de estructura
-# Docuemntacion del tipo de pruebas a crear
-#poner un nombre al conjunto de test y q si lo cambia que se guarden el conjunto de test con ese nombre, arriba tipo cuadro de texto
-# Ejecutar conjuntos de planes de calidad (en conjuntos de pruebas)
-# mirar un logo
-# implementar lo de copyright y mi nombre abajo
-# aspectos y xq he diseñado asi la herramienta (tipo q color he escogido y xq, buscando buenas practicas)
 
 def ui():
     """
