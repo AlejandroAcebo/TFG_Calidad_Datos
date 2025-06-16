@@ -1,6 +1,8 @@
 import datetime
 import io
 import os
+from time import sleep
+
 os.environ["SPARK_VERSION"] = "3.5"
 
 import pandas as pd
@@ -19,6 +21,18 @@ import streamlit as st
 import plotly.express as px
 import json
 from pyspark.sql import SparkSession
+
+#poder conectar con postgresql,
+#comprobar integridad referencial de csv, que haya tipo empleado (Id empleado, ) integridad que pueda seleccionar misma tabla
+# pasar el sonarqube para ver la calidad del codigo
+#plan de pruebas, mirar apuntes patri (calidad de pruebas y sw)
+# control formato csv y json poner texto de estructura
+# Docuemntacion del tipo de pruebas a crear
+#poner un nombre al conjunto de test y q si lo cambia que se guarden el conjunto de test con ese nombre, arriba tipo cuadro de texto
+# Ejecutar conjuntos de planes de calidad (en conjuntos de pruebas)
+# mirar un logo
+# implementar lo de copyright y mi nombre abajo
+# aspectos y xq he diseñado asi la herramienta (tipo q color he escogido y xq, buscando buenas practicas)
 
 def ui():
     """
@@ -42,6 +56,7 @@ def ui():
             "conectado_analisis": False,
             "seleccionada_fuente": False,
             "nombre_archivo": False,
+            "pruebas_ejecutadas": False,
         }
 
         # Si no estan inicializadas las st.session se inicializan
@@ -75,10 +90,8 @@ def ui():
                 visualizar_resultados(json_file)
 
             # Botón para guardar los resultados como un JSON
-            df = st.session_state.get("df_resultado")
-
-            if df is not None and not df.empty:
-                descargar_resultados(df)
+            if "df_resultado" in st.session_state:
+                descargar_resultados(st.session_state["df_resultado"])
             else:
                 st.sidebar.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
 
@@ -159,6 +172,8 @@ def ui():
                     if st.session_state["tests_seleccionados"]:
                         st.session_state["tests_seleccionados"].clear()
                         st.success("Todas las pruebas han sido eliminadas.")
+                        sleep(1)
+                        st.rerun()
                     else:
                         st.warning("El conjunto de pruebas esta vacio")
 
@@ -243,6 +258,7 @@ def gestion_evolucion_analisis(archivos):
 
             st.plotly_chart(fig, use_container_width=True)
 
+
 def gestion_ejecucion_test(resultado):
     """
     Gestiona la ejecución de los tests seleccionados, en caso de que haya un conjunto de tests guardados, procede a
@@ -315,7 +331,7 @@ def gestion_ejecucion_test(resultado):
                         df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
                         res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
                         df_resultado = generar_df_modificado(spark, res,
-                                                             "Verification", tipo, tabla, tabla_2, columna, columna_2)
+                                                             "Verification", tipo, tabla, tabla_2, columna)
                     else:
                         st.warning("La integridad referencial no aplica sobre archivos simples.")
 
