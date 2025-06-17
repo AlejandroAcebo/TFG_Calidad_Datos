@@ -76,6 +76,17 @@ pip install plotly
 pip install pydeequ
 ```
 
+Descarga de los conectores jdbc de bases relacionales: PostgreSQL, MySQL, SQL Server y MariaDB
+```bash
+mkdir jars && cd jars/
+wget https://jdbc.postgresql.org/download/postgresql-42.6.0.jar
+wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.30/mysql-connector-java-8.0.30.jar
+wget https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.2.0.jre8/mssql-jdbc-12.10.0.jre8.jar
+wget https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.1.4/mariadb-java-client-3.1.4.jar
+
+
+```
+
 ### 5. Ejecutar la herramienta
 
 Para iniciar la aplicación, ejecuta el siguiente comando en el directorio de la herramienta:

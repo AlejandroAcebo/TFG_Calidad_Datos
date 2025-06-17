@@ -15,4 +15,4 @@ openmetadata-docker/*
 *.venv
 DaqLity/venv
 *__pycache__
-
+DaqLity/jars

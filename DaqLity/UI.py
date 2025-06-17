@@ -32,7 +32,7 @@ def ui():
         tipo_credibilidad, num_decimales,schema_guardar, tabla_guardar, \
         tiempo_limite, df_pandas, columnas, tabla_nombre, esquema_nombre, \
         spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado,\
-        archivos
+        archivos, tabla_seleccionada
 
     # Titulo de la herramienta
     if 'page' not in st.session_state:
@@ -124,8 +124,40 @@ def ui():
 
                 # Gestion de la interfaz de acuerdo al tipo de test seleccionado
                 valido = True
-                valido = gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccionada, tablas,
-                                              test_config, tipo_analisis, url, valido)
+
+                # Caso conexión a base de datos
+                if "conn" in st.session_state:
+                    if all(x is not None for x in [spark, properties, url, esquema_nombre, tabla_seleccionada, tablas]):
+                        valido = gestion_tipo_test_ui(
+                            properties=properties,
+                            schema_seleccionado=esquema_nombre,
+                            spark=spark,
+                            tabla_seleccionada=tabla_seleccionada,
+                            tablas=tablas,
+                            test_config=test_config,
+                            tipo_analisis=tipo_analisis,
+                            url=url,
+                            valido=valido
+                        )
+                    else:
+                        st.error("Faltan parámetros requeridos para el análisis en base de datos.")
+
+                # Caso archivo cargado
+                elif "df_cargado" in st.session_state:
+                    if all(x is not None for x in [tabla_nombre, esquema_nombre, columnas]):
+                        valido = gestion_tipo_test_ui(
+                            properties=None,
+                            schema_seleccionado=esquema_nombre,
+                            spark=None,
+                            tabla_seleccionada=tabla_nombre,
+                            tablas=[],
+                            test_config=test_config,
+                            tipo_analisis=tipo_analisis,
+                            url=None,
+                            valido=valido
+                        )
+                    else:
+                        st.error("Faltan parámetros requeridos para el análisis sobre archivo cargado.")
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -344,8 +376,9 @@ def gestion_ejecucion_test(resultado):
         st.warning("No se generaron resultados para mostrar.")
 
 
-def gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccionada, tablas, test_config, tipo_analisis,
-                         url, valido):
+def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, tabla_seleccionada=None,
+                         tablas=None, test_config=None, tipo_analisis=None, url=None, valido=True):
+
     """
     Gestiona en la interfaz los nuevos desplegables o campos que deben aparecer de acuerdo al tipo de test
     seleccionado.
@@ -408,8 +441,7 @@ def gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccion
 
         case "Integridad Referencial":
             if "conn" in st.session_state:
-                tablas_opciones = [t for t in tablas if t != tabla_seleccionada]
-                tabla_seleccionada_2 = st.selectbox("Selecciona segunda tabla", tablas_opciones)
+                tabla_seleccionada_2 = st.selectbox("Selecciona segunda tabla", tablas)
                 columnas_opciones = listar_columnas(spark, url, properties,
                                                     f"{schema_seleccionado}.{tabla_seleccionada_2}")
                 columna_2 = st.selectbox("Selecciona la segunda columna", columnas_opciones)
@@ -434,11 +466,12 @@ def gestion_tipo_test_ui(properties, schema_seleccionado, spark, tabla_seleccion
                 test_config["tiempo_limite"] = tiempo_limite
     return valido
 
-def conectar_bd(user, password, server, database):
+def conectar_bd(tipo, user, password, server, database):
     """
     Conexión de la base de datos con la herramienta.
 
     Args:
+        tipo (str): Tipo de base de datos relacional.
         user (str): Nombre de usuario de la base de datos.
         password (str): Contraseña de usuario de la base de datos.
         server (str): Servidor de la base de datos.
@@ -448,31 +481,89 @@ def conectar_bd(user, password, server, database):
         Devuelve spark, la url y propiedades de la base de datos o None en caso de error de conexión.
     """
 
+    tipo = tipo.lower()
+
+    JARS_PATH = "/home/x/Desktop/TFG_Calidad_Datos/DaqLity/jars"
+
+    config_bd = {
+        "sqlserver": {
+            "driver_class": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+            "default_port": 1433,
+            "jar_file": "mssql-jdbc-12.10.0.jre8.jar",
+            "jdbc_url": lambda s, p,
+                               d: f"jdbc:sqlserver://{s}:{p};databaseName={d};encrypt=false;trustServerCertificate=true;"
+        },
+        "postgresql": {
+            "driver_class": "org.postgresql.Driver",
+            "default_port": 5432,
+            "jar_file": "postgresql-42.6.0.jar",
+            "jdbc_url": lambda s, p, d: f"jdbc:postgresql://{s}:{p}/{d}"
+        },
+        "mysql": {
+            "driver_class": "com.mysql.cj.jdbc.Driver",
+            "default_port": 3306,
+            "jar_file": "mysql-connector-java-8.0.33.jar",
+            "jdbc_url": lambda s, p, d: f"jdbc:mysql://{s}:{p}/{d}?useSSL=false"
+        },
+        "mariadb": {
+            "driver_class": "org.mariadb.jdbc.Driver",
+            "default_port": 3306,
+            "jar_file": "mariadb-java-client-3.1.4.jar",
+            "jdbc_url": lambda s, p, d: f"jdbc:mariadb://{s}:{p}/{d}"
+        },
+        "oracle": {
+            "driver_class": "oracle.jdbc.OracleDriver",
+            "default_port": 1521,
+            "jar_file": "ojdbc11-21.9.0.0.jar",
+            "jdbc_url": lambda s, p, d: f"jdbc:oracle:thin:@{s}:{p}:{d}"
+        }
+    }
+
+    if tipo not in config_bd:
+        print(f"Tipo de base de datos no soportado: {tipo}")
+        return None
+
+    conf = config_bd[tipo]
+    port = conf["default_port"]
+    jar_path = os.path.join(JARS_PATH, conf["jar_file"])
+
+    if not os.path.exists(jar_path):
+        print(f"No se encontró el driver JDBC en: {jar_path}")
+        return None
+
     try:
         spark = (SparkSession.builder
-                 .appName("Azure SQL Connection with PySpark")
+                 .appName(f"{tipo.capitalize()} Connection with PySpark")
                  .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
-                 .config("spark.jars", "/home/x/drivers/mssql-jdbc-12.10.0.jre8.jar")
+                 .config("spark.jars", jar_path)
                  .getOrCreate())
 
         spark.sparkContext.setLogLevel("WARN")
 
-        url = f"jdbc:sqlserver://{server}:1433;databaseName={database};encrypt=false;trustServerCertificate=true;"
+        url = conf["jdbc_url"](server, port, database)
 
         properties = {
             "user": user,
             "password": password,
-            "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+            "driver": conf["driver_class"]
         }
 
-        # Test de conexión real: intentar leer una tabla del sistema
-        test_df = spark.read.jdbc(url, "INFORMATION_SCHEMA.TABLES", properties=properties)
-        test_df.limit(1).collect()  # Fuerza una lectura para confirmar conexión
+        test_table = {
+            "sqlserver": "INFORMATION_SCHEMA.TABLES",
+            "postgresql": "pg_catalog.pg_tables",
+            "mysql": "information_schema.tables",
+            "mariadb": "information_schema.tables",
+            "oracle": "ALL_TABLES"
+        }.get(tipo)
+
+        if test_table:
+            test_df = spark.read.jdbc(url, test_table, properties=properties)
+            test_df.limit(1).collect()  # Fuerza la conexión
 
         return spark, url, properties
 
     except Exception as e:
-        print(f"Error de conexión: {e}")
+        print(f"Error conectando a {tipo}: {e}")
         return None
 
 
@@ -611,6 +702,15 @@ def seleccion_conexion():
         if opcion_fuente == "Base de datos":
             if not st.session_state["conectado_analisis"]:
                 st.sidebar.header("🔌 Conexión a Base de Datos")
+                tipos_bd = {
+                    "SQL Server": "sqlserver",
+                    "PostgreSQL": "postgresql",
+                    "MySQL": "mysql",
+                    "MariaDB": "mariadb",
+                    "Oracle": "oracle"
+                }
+                tipo_mostrar = st.sidebar.selectbox("Tipo de base de datos", list(tipos_bd.keys()))
+                tipo = tipos_bd[tipo_mostrar]
                 host = st.sidebar.text_input("Host", value="localhost")
                 user = st.sidebar.text_input("Usuario")
                 password = st.sidebar.text_input("Contraseña", type="password")
@@ -618,7 +718,7 @@ def seleccion_conexion():
                 st.warning("Actualmente solamente permite conexión con SQL Server")
 
                 if st.sidebar.button("Conectar análisis"):
-                    conn = conectar_bd(user, password, host, database)
+                    conn = conectar_bd(tipo,user, password, host, database)
                     if conn:
                         st.session_state["conn"] = conn
                         st.session_state["conectado_analisis"] = True
