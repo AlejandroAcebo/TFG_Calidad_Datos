@@ -58,6 +58,7 @@ def ui():
 
         # Selección de tabla y columna
         if "conn" in st.session_state or "df_archivo" in st.session_state:
+
             if "conn" in st.session_state:
                 spark, url, properties = st.session_state["conn"]
 

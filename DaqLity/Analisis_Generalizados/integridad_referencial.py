@@ -9,8 +9,13 @@ from pydeequ.analyzers import AnalysisRunner, Completeness, AnalyzerContext
 
 def analizar_integridad_referencial(spark, df_tabla1, df_tabla2, columna, columna2):
 
-    df_validacion = (df_tabla1.join(df_tabla2, on=columna, how="left")
-                     .withColumn("es_correcto",col(columna2).isNotNull()))
+    df1 = df_tabla1.alias("t1")
+    df2 = df_tabla2.alias("t2")
+
+    df_validacion = (
+        df1.join(df2, col(f"t1.{columna}") == col(f"t2.{columna}"), how="left")
+        .withColumn("es_correcto", col(f"t2.{columna2}").isNotNull())
+    )
 
     existen = df_validacion.filter(df_validacion.es_correcto==True).count()
 
