@@ -6,6 +6,8 @@ Desarrollo-GreatExpectations/great-expectations/gx/*
 Desarrollo-GreatExpectations/great-expectations/.idea
 Desarrollo-GreatExpectations/great-expectations/.ipynb_checkpoints
 Desarrollo-GreatExpectations/airflow/logs/*
+Desarrollo-GreatExpectations/airflow/.env
+Desarrollo-GreatExpectations/great-expectations/clientes_expectations.ipynb
 Desarrollo-PyDeequ/.idea/
 Desarrollo-PyDeequ/.venv
 airflowTFG/*
