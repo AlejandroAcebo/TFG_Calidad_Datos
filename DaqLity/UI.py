@@ -34,12 +34,61 @@ def ui():
         spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado,\
         archivos, tabla_seleccionada
 
-    # Titulo de la herramienta
-    if 'page' not in st.session_state:
-        st.session_state.page = 'inicio'
+    # Configuración de la página
+    st.set_page_config(
+        page_title="DaqLity",
+        page_icon="📊",
+        layout="wide"
+    )
 
-    if st.session_state.page == 'inicio':
-        st.sidebar.title("DaqLity")
+    # Ocultar elementos por defecto de Streamlit
+    st.markdown("""
+        <style>
+            #MainMenu, header, footer {visibility: hidden;}
+            .block-container {
+                padding-top: 2rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Cabecera personalizada
+    st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 1rem 2rem; border-radius: 0 0 10px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
+            <h2 style='margin: 0; color: #333;'>📊 DaqLity</h2>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if 'page' not in st.session_state:
+        st.session_state.page = 'conexion_bd'
+
+    # Pie de página
+    st.markdown("""
+    <style>
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.85em;
+        color: gray;
+    }
+    </style>
+
+    <div class="footer">
+        © 2025 - Hecho por <a href="https://github.com/AlejandroAcebo" target="_blank">Alejandro Acebo</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if 'page' not in st.session_state:
+        st.session_state.page = 'conexion_bd'
+
+    if st.session_state.page == 'conexion_bd':
+        st.write("### Bienvenido 👋")
+        st.write(
+            "DaqLity es una herramienta de análisis de la calidad del dato. Para empezar con tu análisis, primero debes"
+            "seleccionar tu fuente de datos a analizar y seguido cumplimentar los parámetros o con un archivo")
 
         default_session_state = {
             "conectado_analisis": False,
@@ -70,25 +119,32 @@ def ui():
                 tabla_nombre = os.path.splitext(nombre_archivo)[0]
                 esquema_nombre = nombre_archivo
 
-            # Creacion de una nueva pagina solo para ver la evaluación
-            if st.sidebar.button("📊 Ir a evaluación", on_click=ir_evaluacion):
-                st.session_state.page = 'evaluacion'
-
-            # Boton para visualizar resultados
-            json_file = st.sidebar.file_uploader("🔍 Visualizar analisis previos", type=["json"])
-            if json_file is not None:
-                visualizar_resultados(json_file)
-
-            # Botón para guardar los resultados como un JSON
-            if "df_resultado" in st.session_state:
-                descargar_resultados(st.session_state["df_resultado"])
-            else:
-                st.sidebar.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
-
+    elif st.session_state.page == 'inicio':
+            izq, der = st.columns([0.5, 2])
+            with izq:
+                st.header("Plan de calidad: ")
+            with der:
+                st.text_input("", label_visibility="collapsed")
             # División en columnas
-            col_izq, col_der = st.columns(2)
+            col_izq, col_medio, col_der = st.columns(3)
 
             with col_izq:
+                # Creacion de una nueva pagina solo para ver la evaluación
+                if st.button("📊 Ir a evaluación", on_click=ir_evaluacion):
+                    st.session_state.page = 'evaluacion'
+
+                # Boton para visualizar resultados
+                json_file = st.file_uploader("🔍 Visualizar analisis previos", type=["json"])
+                if json_file is not None:
+                    visualizar_resultados(json_file)
+
+                # Botón para guardar los resultados como un JSON
+                if "df_resultado" in st.session_state:
+                    descargar_resultados(st.session_state["df_resultado"])
+                else:
+                    st.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
+
+            with col_medio:
                 st.header("Definición de pruebas")
                 # Si hay conexión a base de datos
                 if "conn" in st.session_state:
@@ -163,20 +219,27 @@ def ui():
                 col1, col2 = st.columns(2)
                 with col1:
                     # Guardar test
-                    if st.button("💾 Guardar test", disabled= not valido):
+                    if st.button("💾 Guardar test", disabled= not valido,use_container_width=True):
                         st.session_state.setdefault("tests_seleccionados", []).append(test_config)
                         st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
                 with col2:
                     eliminar = False
                     if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
                         eliminar = True
-                    if st.button("🗑️ Test anterior",disabled= not eliminar):
+                    if st.button("🗑️ Eliminar test anterior",disabled= not eliminar,use_container_width=True):
                         if st.session_state["tests_seleccionados"]:
                             st.session_state.setdefault("tests_seleccionados", []).pop()
                             st.success(f"Ultimo test eliminado correctamente.")
                         else:
                             st.error("No hay tests guardados actualmente.")
 
+                #Botón ejecución de pruebas
+                if st.button("▶️ Ejecutar el conjunto de pruebas", use_container_width=True):
+                    if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+                        resultado = pd.DataFrame()
+                        st.session_state["df_resultado"] = gestion_ejecucion_test(resultado)
+                    else:
+                        st.warning("No hay tests guardados.")
             with col_der:
                 st.header("Conjuntos de pruebas")
                 # Boton para cargar un conjunto de pruebas en formato JSON
@@ -190,7 +253,7 @@ def ui():
                 else:
                     st.warning("No hay tests guardados.")
 
-                if st.button("🧹 Eliminar todas las pruebas"):
+                if st.button("🧹 Eliminar todas las pruebas",use_container_width=True):
                     if st.session_state["tests_seleccionados"]:
                         st.session_state["tests_seleccionados"].clear()
                         st.success("Todas las pruebas han sido eliminadas.")
@@ -199,20 +262,20 @@ def ui():
                     else:
                         st.warning("El conjunto de pruebas esta vacio")
 
-            # Boton para ejecutar todas las pruebas guardadas
-            if st.button("▶️ Ejecutar el conjunto de pruebas"):
-                resultado = pd.DataFrame()
-                if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                    gestion_ejecucion_test(resultado)
-                else:
-                    st.warning("No hay tests guardados.")
+            # Mostrar los resultados del test
+            if "df_resultado" in st.session_state:
+                st.write("### Resultado de pruebas:")
+                st.dataframe(st.session_state["df_resultado"], use_container_width=True)
 
     elif st.session_state.page == 'evaluacion':
         st.title("📊 Evaluación histórico de datos")
         # Funcionalidad para ver histórico cargando múltiples archivos
-        archivos = st.sidebar.file_uploader("Sube tus archivos", type=["json"], accept_multiple_files=True)
-        st.sidebar.button("↩️ Volver atrás",on_click=ir_inicio)
-        gestion_evolucion_analisis(archivos)
+        columna_izquierda, columna_derecha = st.columns(2)
+        with columna_izquierda:
+            archivos = st.file_uploader("Sube tus archivos", type=["json"], accept_multiple_files=True)
+            st.button("↩️ Volver atrás",on_click=ir_inicio)
+        with columna_derecha:
+            gestion_evolucion_analisis(archivos)
 
 
 def ir_inicio():
@@ -242,7 +305,7 @@ def gestion_evolucion_analisis(archivos):
 
     global archivo
     if archivos:
-        st.sidebar.success(f"Se cargaron {len(archivos)} archivos")
+        st.success(f"Se cargaron {len(archivos)} archivos")
         df_final = []
         for archivo in archivos:
             try:
@@ -371,8 +434,7 @@ def gestion_ejecucion_test(resultado):
         except Exception as e:
             st.error(f"Error en la ejecución del test: {e}")
     if not resultado.empty:
-        st.dataframe(resultado)
-        st.session_state["df_resultado"] = resultado
+        return resultado
     else:
         st.warning("No se generaron resultados para mostrar.")
 
@@ -691,7 +753,8 @@ def seleccion_conexion():
 
     global archivo, spark, properties
     if not st.session_state["conectado_analisis"]:
-        st.session_state["opcion_fuente"] = st.sidebar.selectbox(
+        st.header("🔌 Conexión a fuente de datos")
+        st.session_state["opcion_fuente"] = st.selectbox(
             "Selecciona la fuente de datos",
             ["Base de datos", "Archivo CSV", "Archivo JSON"]
         )
@@ -702,7 +765,6 @@ def seleccion_conexion():
         # Fuente de datos base de datos
         if opcion_fuente == "Base de datos":
             if not st.session_state["conectado_analisis"]:
-                st.sidebar.header("🔌 Conexión a Base de Datos")
                 tipos_bd = {
                     "SQL Server": "sqlserver",
                     "PostgreSQL": "postgresql",
@@ -710,29 +772,30 @@ def seleccion_conexion():
                     "MariaDB": "mariadb",
                     "Oracle": "oracle"
                 }
-                tipo_mostrar = st.sidebar.selectbox("Tipo de base de datos", list(tipos_bd.keys()))
+                tipo_mostrar = st.selectbox("Tipo de base de datos", list(tipos_bd.keys()))
                 tipo = tipos_bd[tipo_mostrar]
-                host = st.sidebar.text_input("Host", value="localhost")
-                user = st.sidebar.text_input("Usuario")
-                password = st.sidebar.text_input("Contraseña", type="password")
-                database = st.sidebar.text_input("Base de Datos")
-                st.warning("Actualmente solamente permite conexión con SQL Server")
+                host = st.text_input("Host", value="localhost")
+                user = st.text_input("Usuario")
+                password = st.text_input("Contraseña", type="password")
+                database = st.text_input("Base de Datos")
 
-                if st.sidebar.button("Conectar análisis"):
+                if st.button("Conectar análisis"):
                     conn = conectar_bd(tipo,user, password, host, database)
                     if conn:
                         st.session_state["conn"] = conn
                         st.session_state["conectado_analisis"] = True
-                        st.sidebar.success("Conectado para análisis")
+                        st.success("Conectado para análisis")
+                        st.session_state.page = 'inicio'
+                        st.rerun()
                     else:
-                        st.sidebar.error("Error al conectar para análisis")
+                        st.error("Error al conectar para análisis")
         # Fuente de datos desde archivo CSV o JSON
         elif opcion_fuente in ["Archivo CSV", "Archivo JSON"]:
             if not st.session_state["conectado_analisis"]:
                 if opcion_fuente == "Archivo CSV":
-                    archivo = st.sidebar.file_uploader("Sube un archivo", type=["csv"])
+                    archivo = st.file_uploader("Sube un archivo", type=["csv"])
                 elif opcion_fuente == "Archivo JSON":
-                    archivo = st.sidebar.file_uploader("Sube un archivo", type=["json"])
+                    archivo = st.file_uploader("Sube un archivo", type=["json"])
 
                 if archivo is not None:
                     st.session_state["nombre_archivo"] = archivo.name
@@ -744,6 +807,8 @@ def seleccion_conexion():
                         st.session_state["archivo_info"] = properties
                         st.success(f"Archivo '{archivo.name}' cargado correctamente.")
                         st.session_state["conectado_analisis"] = True
+                        st.session_state.page = 'inicio'
+                        st.rerun()
                     else:
                         st.error("Hubo un error al cargar el archivo.")
 
@@ -794,7 +859,7 @@ def descargar_resultados(df):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     file_name = f"resultado_analisis_{timestamp}.json"
     # Botón de descarga
-    st.sidebar.download_button(
+    st.download_button(
         label="📤 Descargar resultados",
         data=json_bytes,
         file_name=file_name,
