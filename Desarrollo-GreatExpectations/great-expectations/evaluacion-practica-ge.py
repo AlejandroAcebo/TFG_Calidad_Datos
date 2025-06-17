@@ -4,10 +4,10 @@ from great_expectations.checkpoint import UpdateDataDocsAction
 
 context = gx.get_context()
 
-# Configurar datasource para Postgres, donde indico <usuario:contraseña> tienes que poner el 
-# usuario y la contraseña que para el desarrollo se ha empleado el mismo nombre y contraseña = 
+# Configurar datasource para Postgres, donde indico datos cada usuario tiene que indicar el 
+# usuario:contraseña que para el desarrollo se ha empleado el mismo nombre y contraseña = 
 # postgres
-PG_CONNECTION_STRING = "postgresql+psycopg2://<usuario:contraseña>@127.0.0.1:5432/postgres"
+PG_CONNECTION_STRING = "postgresql+psycopg2://datos@127.0.0.1:5432/postgres"
 pg_datasource = context.data_sources.add_postgres(name="pg_datasource", connection_string=PG_CONNECTION_STRING)
 
 # Definir el asset (tabla clientes)
