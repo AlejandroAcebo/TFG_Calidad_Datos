@@ -42,7 +42,7 @@ def ui():
         st.session_state.page = 'conexion_bd'
 
     if st.session_state.page == 'conexion_bd':
-        col1, col2, col3 = st.columns([3, 4, 3])
+        col1, col2, col3 = st.columns([3.5, 3.5, 3.5])
         with col2:
             with st.container(border=True):
                 default_session_state = {
@@ -148,7 +148,7 @@ def ui():
                     st.error("Faltan parámetros requeridos para el análisis en base de datos.")
 
             # Caso archivo cargado
-            elif "df_cargado" in st.session_state:
+            elif "df_archivo" in st.session_state:
                 if all(x is not None for x in [tabla_nombre, esquema_nombre, columnas]):
                     valido = gestion_tipo_test_ui(
                         properties=None,
@@ -193,7 +193,7 @@ def ui():
             st.markdown('<h2 class="subtitulos">GESTIÓN PLAN DE CALIDAD</h2>', unsafe_allow_html=True)
 
             # Boton para cargar un conjunto de pruebas en formato JSON
-            archivo_test = st.file_uploader("📁 Cargar conjunto de test", type="json")
+            archivo_test = st.file_uploader("**Cargar plan de calidad**", type="json")
             if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
                 cargar_conjunto_test(archivo_test)
 
@@ -221,12 +221,12 @@ def ui():
             st.dataframe(st.session_state["df_resultado"], use_container_width=True)
 
     elif st.session_state.page == 'evaluacion':
-        st.title("📊 Evaluación histórico de datos")
+        st.markdown('<h2 class="subtitulos">EVALUACIÓN ANÁLISIS DE RESULTADOS</h2>', unsafe_allow_html=True)
         # Funcionalidad para ver histórico cargando múltiples archivos
-        columna_izquierda, columna_derecha = st.columns(2)
+        columna_izquierda, columna_derecha = st.columns([1,3], border=True)
         with columna_izquierda:
-            archivos = st.file_uploader("Sube tus archivos", type=["json"], accept_multiple_files=True)
-            st.button("↩️ Volver atrás",on_click=ir_inicio)
+            archivos = st.file_uploader("**Sube tus archivos**", type=["json"], accept_multiple_files=True)
+            st.button("↩️ Volver atrás",on_click=ir_inicio,use_container_width=True)
         with columna_derecha:
             gestion_evolucion_analisis(archivos)
 
@@ -309,6 +309,51 @@ def gestion_estilo_UI():
 
     st.markdown(css, unsafe_allow_html=True)
 
+    st.markdown("""
+        <style>
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color: white;
+                text-align: center;
+                padding: 10px;
+                font-size: 0.85em;
+                color: gray;
+                z-index: 100;
+                box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.05);
+            }
+
+            .footer a {
+                color: #af6c58;
+                text-decoration: none;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .footer a:hover {
+                text-decoration: underline;
+            }
+
+            .footer img {
+                width: 16px;
+                height: 16px;
+                margin-bottom: 2px;
+            }
+        </style>
+
+        <div class="footer">
+            © 2025 - Hecho por 
+            <a href="https://github.com/AlejandroAcebo" target="_blank">
+                Alejandro Acebo
+                <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub Logo">
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
+
     # Título con banner personalizado
     st.markdown(
         """
@@ -348,7 +393,6 @@ def gestion_evolucion_analisis(archivos):
 
     global archivo
     if archivos:
-        st.success(f"Se cargaron {len(archivos)} archivos")
         df_final = []
         for archivo in archivos:
             try:
@@ -731,7 +775,7 @@ def cargar_archivo(archivo):
 def listar_schemas(spark, url, props):
     """
     Mediante jdbc y spark hace la conexión con los parámetros pasados para retornar los esquemas que tiene la base
-    de datos.
+    de datos que no esten vacios o no sean válidos para análisis.
 
     Args:
         spark (SparkSession): Sesión activa de Spark.
@@ -741,9 +785,23 @@ def listar_schemas(spark, url, props):
     Returns:
         Devuelve los esquemas de esa base de datos.
     """
-
-    schemas_df = spark.read.jdbc(url, "INFORMATION_SCHEMA.SCHEMATA", properties=props)
-    return schemas_df.select("SCHEMA_NAME").rdd.flatMap(lambda x: x).collect()
+    try:
+        # Cargar esquemas disponibles
+        esquemas_df = spark.read.jdbc(url, "INFORMATION_SCHEMA.SCHEMATA", properties=props)
+        esquemas = [row["SCHEMA_NAME"] for row in esquemas_df.collect() if row["SCHEMA_NAME"] is not None]
+        # Cargar todas las tablas
+        tablas_df = spark.read.jdbc(
+            url,
+            "(SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES) AS tablas_temp",
+            properties=props
+        )
+        # Obtener esquemas que tienen al menos una tabla
+        esquemas_con_tablas = set([row["TABLE_SCHEMA"] for row in tablas_df.collect()])
+        # Filtrar esquemas válidos
+        esquemas_validos = [esquema for esquema in esquemas if esquema in esquemas_con_tablas]
+        return esquemas_validos
+    except Exception as e:
+        st.error("Ha habido un error al tratar de listar los esquemas disponibles")
 
 
 def listar_tablas(spark, url, props, schema):
@@ -822,7 +880,7 @@ def seleccion_conexion():
                 password = st.text_input("**Contraseña**", type="password")
                 database = st.text_input("**Base de Datos**")
 
-                if st.button("Conectar análisis"):
+                if st.button("Conectar análisis",use_container_width=True):
                     conn = conectar_bd(tipo,user, password, host, database)
                     if conn:
                         st.session_state["conn"] = conn
@@ -936,7 +994,7 @@ def descargar_conjunto_test(vacio):
     else:
         disponible = True
     st.download_button(
-        label="📤 Descargar conjunto de test",
+        label="📤 Descargar plan de calidad",
         data=buffer,
         file_name=nombre_test_calidad,
         mime="application/json",
@@ -979,10 +1037,14 @@ def generar_df_modificado(spark, res, tipo_ejecucion, tipo, *componentes):
 
     # Elimina la columna que genera PyDeequ de tipo de test de PyDeequ ya que para el usuario final no tiene sentido.
     df_resultado = df_resultado.drop("name")
-    return df_resultado.withColumn(
+    df_resultado = df_resultado.drop("entity")
+
+    df_resultado = df_resultado.withColumn(
         "instance",
         concat_ws("_", *[lit(str(c)) for c in (tipo, *componentes)])
     )
+
+    return df_resultado
 
 
 def creacion_dataframe_personalizado(spark,df):
@@ -1003,8 +1065,7 @@ def creacion_dataframe_personalizado(spark,df):
         concat((col("value") * 100).cast("int").cast("String"), lit("%"))
     )
     df = df.withColumn("Fecha y hora de ejecución", current_timestamp())
-    df = (df.withColumnRenamed("entity","Tipo test")
-          .withColumnRenamed("instance","Nombre de indicador")
+    df = (df.withColumnRenamed("instance","Nombre de indicador")
           .withColumnRenamed("value","Valor"))
     return df
 
