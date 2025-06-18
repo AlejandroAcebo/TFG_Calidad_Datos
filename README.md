@@ -36,6 +36,7 @@ La aplicación permite detectar posibles problemas de calidad en los datos, pres
 
 ![Visualización de la evolución de varios análisis](https://i.imgur.com/qsJbzfj.png)
 
+---
 ## ⚙️ Instalación y Puesta en Marcha
 
 ### 1. Clonar el repositorio
