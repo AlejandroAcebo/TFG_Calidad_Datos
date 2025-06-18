@@ -231,7 +231,7 @@ def gestion_estilo_UI():
     # Configuración de la vista de la ventana
     st.set_page_config(
         page_title="DaqLity",
-        page_icon="https://i.imgur.com/vIxVnhy.png",
+        page_icon="https://i.imgur.com/ZTU70TS.png",
         layout="wide"
     )
     # Ocultar elementos por defecto de Streamlit
@@ -306,7 +306,7 @@ def gestion_estilo_UI():
     st.markdown(
         """
         <div style="text-align: center; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;">
-            <img src="https://i.imgur.com/Jcg4sRa.png" width="400" style="display: block; margin: 0 auto;">
+            <img src="https://i.imgur.com/p9ASPIf.png" width="400" style="display: block; margin: 0 auto;">
         </div>
         """,
         unsafe_allow_html=True
