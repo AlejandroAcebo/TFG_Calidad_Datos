@@ -29,6 +29,13 @@ La aplicación permite detectar posibles problemas de calidad en los datos, pres
 
 ---
 
+## Imágenes de la herramienta
+![Formulario conexión fuente de datos](https://i.imgur.com/S8gJLGU.png)
+
+![Interfaz principal herramienta](https://i.imgur.com/DKDGOxY.png)
+
+![Visualización de la evolución de varios análisis](https://i.imgur.com/qsJbzfj.png)
+
 ## ⚙️ Instalación y Puesta en Marcha
 
 ### 1. Clonar el repositorio
