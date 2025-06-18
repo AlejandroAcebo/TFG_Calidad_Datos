@@ -309,6 +309,7 @@ def gestion_estilo_UI():
 
     st.markdown(css, unsafe_allow_html=True)
 
+    # Pie de pagina con copyrighy y mi nombre con enlace a mi git.
     st.markdown("""
         <style>
             .footer {
