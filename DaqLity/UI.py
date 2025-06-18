@@ -1,6 +1,7 @@
 import datetime
 import io
 import os
+import traceback
 from time import sleep
 
 os.environ["SPARK_VERSION"] = "3.5"
@@ -34,6 +35,7 @@ def ui():
         spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado,\
         archivos, tabla_seleccionada, nombre_test_calidad
 
+
     gestion_estilo_UI()
 
     if 'page' not in st.session_state:
@@ -57,7 +59,6 @@ def ui():
 
                 # Selección tipo de fuente de datos, si no hay conexión todavía
                 seleccion_conexion()
-
                 # Selección de tabla y columna
                 if "conn" in st.session_state or "df_archivo" in st.session_state:
 
@@ -75,46 +76,46 @@ def ui():
     elif st.session_state.page == 'inicio':
 
         # División en columnas
-        col_izq, col_medio, col_der = st.columns(3)
+        col_izq, col_medio, col_der = st.columns([3,3,3], border=True)
 
         with col_izq:
-            st.header("Gestión visualización")
-            st.subheader("Aquí se gestiona la visualización de análisis y la descarga")
+            st.markdown('<h2 class="subtitulos">GESTIÓN VISUALIZACIÓN</h2>', unsafe_allow_html=True)
             # Creacion de una nueva pagina solo para ver la evaluación
             if st.button("📊 Ir a evaluación", on_click=ir_evaluacion, use_container_width=True):
                 st.session_state.page = 'evaluacion'
 
             # Botón para guardar los resultados como un JSON
             if "df_resultado" in st.session_state:
-                descargar_resultados(st.session_state["df_resultado"])
+                df = st.session_state["df_resultado"]
             else:
-                st.warning("Primero debes ejecutar el análisis para poder guardar los resultados.")
+                df = None
+            descargar_resultados(df)
 
         with col_medio:
-            st.header("Definición de plan de calidad")
-            nombre_test_calidad = st.text_input("Nombre plan de calidad:")
+            st.markdown('<h2 class="subtitulos">DEFINIR PLAN DE CALIDAD</h2>', unsafe_allow_html=True)
+            nombre_test_calidad = st.text_input("**Nombre del plan de calidad:**")
             # Si hay conexión a base de datos
             if "conn" in st.session_state:
                 spark, url, properties = st.session_state["conn"]
                 schemas = listar_schemas(spark, url, properties)
-                schema_seleccionado = st.selectbox("Selecciona un esquema", schemas)
+                schema_seleccionado = st.selectbox("**Selecciona un esquema**", schemas)
                 tablas = listar_tablas(spark, url, properties, schema_seleccionado)
-                tabla_seleccionada = st.selectbox("Selecciona una tabla", tablas)
+                tabla_seleccionada = st.selectbox("**Selecciona una tabla**", tablas)
                 columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
                 tabla_nombre = tabla_seleccionada
                 esquema_nombre = schema_seleccionado
 
             # Si hay un archivo CSV/JSON cargado
-            elif "df_cargado" in st.session_state:
-                df_cargado = st.session_state["df_cargado"]
-                columnas = df_cargado.columns.tolist()
+            elif "df_archivo" in st.session_state:
+                df_cargado = st.session_state["df_archivo"]
+                columnas = st.session_state.get("columnas_archivo", [])
                 nombre_archivo = st.session_state["nombre_archivo"]
                 tabla_nombre = os.path.splitext(nombre_archivo)[0]
                 esquema_nombre = nombre_archivo
 
             # Seleccionar columna y tipo de análisis que lo tienen ambos
-            columna = st.selectbox("Selecciona una columna", columnas)
-            tipo_analisis = st.selectbox("Selecciona el tipo de análisis", [
+            columna = st.selectbox("**Selecciona una columna**", columnas)
+            tipo_analisis = st.selectbox("**Selecciona el tipo de análisis**", [
                 "Completitud", "Credibilidad", "Integridad Referencial",
                 "Exactitud", "Precision", "Actualidad"
             ])
@@ -187,8 +188,10 @@ def ui():
                     st.session_state["df_resultado"] = gestion_ejecucion_test(resultado)
                 else:
                     st.warning("No hay tests guardados.")
+
         with col_der:
-            st.header("Manejo plan de calidad")
+            st.markdown('<h2 class="subtitulos">GESTIÓN PLAN DE CALIDAD</h2>', unsafe_allow_html=True)
+
             # Boton para cargar un conjunto de pruebas en formato JSON
             archivo_test = st.file_uploader("📁 Cargar conjunto de test", type="json")
             if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
@@ -205,9 +208,10 @@ def ui():
 
             # Boton para descargar el conjunto de pruebas que se han guardado
             if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                descargar_conjunto_test()
+                vacio = False
             else:
-                st.warning("No hay tests guardados.")
+                vacio = True
+            descargar_conjunto_test(vacio)
 
 
 
@@ -234,74 +238,77 @@ def gestion_estilo_UI():
         page_icon="https://i.imgur.com/ZTU70TS.png",
         layout="wide"
     )
-    # Ocultar elementos por defecto de Streamlit
-    st.markdown("""
+
+    # CSS agrupado en un solo bloque para mejor mantenimiento
+    css = """
         <style>
+            /* Ocultar elementos por defecto de Streamlit */
             #MainMenu, header, footer {visibility: hidden;}
             .block-container {
                 padding-top: 2rem;
             }
+
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+            /* Aplica a todo */
+            * {
+                font-family: 'Poppins', sans-serif !important;
+            }
+
+            /* Fondo y color texto */
+            .stApp {
+                background-color: #f5f7fa !important;
+                color: #545454;
+            }
+
+            /* Botones */
+            div.stButton > button {
+                background-color: #af6c58 !important;
+                color: white !important;
+                border-radius: 8px !important;
+                padding: 10px 20px !important;
+                font-weight: 500 !important;
+                border: none !important;
+                transition: background-color 0.3s ease !important;
+                font-family: 'Poppins', sans-serif !important;
+            }
+            div.stButton > button:hover {
+                background-color: #8b4d3b!important;
+                cursor: pointer !important;
+            }
+
+            /* Labels e inputs */
+            label, input, select, textarea {
+                font-family: 'Poppins', sans-serif !important;
+                font-weight: 500 !important;
+            }
+
+            /* Personalizacion formulario */
+            .st-form-box {
+                border: 2px solid #1E90FF;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+                background-color: white;
+                box-shadow: 2px 2px 10px rgba(30,144,255,0.1);
+            }
+            /* Personalizacion subtitulos */
+            .subtitulos {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+                border-bottom: 1px solid #af6c58 !important;
+                padding-bottom: 8px !important;
+                margin-top: 0 !important;
+                margin-bottom: 40px !important;
+                font-weight: 600 !important;
+                color: #545454 !important;
+        }
         </style>
-    """, unsafe_allow_html=True)
-    # Personalización de tipo de fuente, colores y fondos
-    st.markdown(
         """
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-        /* Aplica a todo */
-        * {
-            font-family: 'Poppins', sans-serif !important;
-        }
+    st.markdown(css, unsafe_allow_html=True)
 
-        /* Fondo y color texto */
-        .stApp {
-            background-color: #f5f7fa !important;
-            color: #222222 !important;
-        }
-
-        /* Botones */
-        div.stButton > button {
-            background-color: #1E90FF !important;
-            color: white !important;
-            border-radius: 8px !important;
-            padding: 10px 20px !important;
-            font-weight: 500 !important;
-            border: none !important;
-            transition: background-color 0.3s ease !important;
-            font-family: 'Poppins', sans-serif !important;
-        }
-        div.stButton > button:hover {
-            background-color: #1C86EE !important;
-            cursor: pointer !important;
-        }
-        
-        /* Labels e inputs */
-        label, input, select, textarea {
-            font-family: 'Poppins', sans-serif !important;
-            font-weight: 500 !important;
-        }
-
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    # Personalizacion formulario
-    st.markdown(
-        """
-        <style>
-        .st-form-box {
-            border: 2px solid #1E90FF;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            background-color: white;
-            box-shadow: 2px 2px 10px rgba(30,144,255,0.1);
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
     # Título con banner personalizado
     st.markdown(
         """
@@ -312,25 +319,6 @@ def gestion_estilo_UI():
         unsafe_allow_html=True
     )
 
-    # Pie de página
-    st.markdown("""
-        <style>
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 0.85em;
-            color: gray;
-        }
-        </style>
-
-        <div class="footer">
-            © 2025 - Hecho por <a href="https://github.com/AlejandroAcebo" target="_blank">Alejandro Acebo</a>
-        </div>
-        """, unsafe_allow_html=True)
 
 
 def ir_inicio():
@@ -520,10 +508,10 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
     match tipo_analisis:
         case "Credibilidad":
             tipos_credibilidad_opciones = ["Patron", "Conjunto valores"]
-            tipo_credibilidad = st.selectbox("Selecciona el tipo", tipos_credibilidad_opciones)
-            patron = st.text_input("Escribe el patrón a filtrar o posibles valores separados por comas")
-            st.caption("Ejemplo patrón: ^(?=(?:\\D*\\d){9,})[^\\p{L}]*$")
-            st.caption("Ejemplo posibles valores: Main Office,Shipping")
+            tipo_credibilidad = st.selectbox("**Selecciona el tipo**", tipos_credibilidad_opciones)
+            patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
+            st.caption("***Ejemplo patrón: ^(?=(?:\\D*\\d){9,})[^\\p{L}]*$***")
+            st.caption("***Ejemplo posibles valores: Main Office,Shipping***")
             if not patron.strip():
                 st.warning("El campo 'patrón' no puede estar vacío.")
                 valido = False
@@ -535,10 +523,10 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
 
         case "Exactitud":
             tipos_exactitud_opciones = ["Sintactica", "Semantica"]
-            tipo_exactitud = st.selectbox("Selecciona el tipo", tipos_exactitud_opciones)
-            patron = st.text_input("Escribe el patrón a filtrar o posibles valores separados por comas")
-            st.caption("Ejemplo sintáctica: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$")
-            st.caption("Ejemplo semántica: Main Office,Shipping")
+            tipo_exactitud = st.selectbox("**Selecciona el tipo**", tipos_exactitud_opciones)
+            patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
+            st.caption("***Ejemplo sintáctica: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$***")
+            st.caption("***Ejemplo semántica: Main Office,Shipping***")
             if not patron.strip():
                 st.warning("El campo 'patrón' no puede estar vacío.")
                 valido = False
@@ -549,8 +537,7 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
                 })
 
         case "Precision":
-            num_decimales = st.text_input("Introduce la cantidad de decimales que debe tener la columna,"
-                                          " solo número entero")
+            num_decimales = st.text_input("**Introduce la cantidad de decimales que debe tener la columna**")
             if not num_decimales.isdigit():
                 st.warning("Debes introducir un número entero válido.")
                 valido = False
@@ -559,10 +546,10 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
 
         case "Integridad Referencial":
             if "conn" in st.session_state:
-                tabla_seleccionada_2 = st.selectbox("Selecciona segunda tabla", tablas)
+                tabla_seleccionada_2 = st.selectbox("**Selecciona segunda tabla**", tablas)
                 columnas_opciones = listar_columnas(spark, url, properties,
                                                     f"{schema_seleccionado}.{tabla_seleccionada_2}")
-                columna_2 = st.selectbox("Selecciona la segunda columna", columnas_opciones)
+                columna_2 = st.selectbox("**Selecciona la segunda columna**", columnas_opciones)
                 if not tabla_seleccionada_2 or not columna_2:
                     st.warning("Debes seleccionar una tabla y una columna válidas.")
                     valido = False
@@ -575,8 +562,8 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
                 st.warning("La integridad referencial no aplica sobre archivos simples.")
 
         case "Actualidad":
-            tiempo_limite = st.text_input("Introduce la fecha máxima que debería tener la columna")
-            st.caption("Un ejemplo sería: 2006-01-01 00:00:00")
+            tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**")
+            st.caption("***Ejemplo: 2006-01-01 00:00:00***")
             if not tiempo_limite.strip():
                 st.warning("La fecha límite no puede estar vacía.")
                 valido = False
@@ -650,6 +637,7 @@ def conectar_bd(tipo, user, password, server, database):
         return None
 
     try:
+
         spark = (SparkSession.builder
                  .appName(f"{tipo.capitalize()} Connection with PySpark")
                  .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
@@ -808,9 +796,9 @@ def seleccion_conexion():
 
     global archivo, spark, properties
     if not st.session_state["conectado_analisis"]:
-        st.header("FORMULARIO CONEXIÓN:")
+        st.markdown('<h3 class="subtitulos">FORMULARIO CONEXIÓN</h3>', unsafe_allow_html=True)
         st.session_state["opcion_fuente"] = st.selectbox(
-            "Selecciona la fuente de datos",
+            "**Selecciona la fuente de datos**",
             ["Base de datos", "Archivo CSV", "Archivo JSON"]
         )
         st.session_state["seleccionada_fuente"] = True
@@ -827,12 +815,12 @@ def seleccion_conexion():
                     "MariaDB": "mariadb",
                     "Oracle": "oracle"
                 }
-                tipo_mostrar = st.selectbox("Tipo de base de datos", list(tipos_bd.keys()))
+                tipo_mostrar = st.selectbox("**Tipo de base de datos**", list(tipos_bd.keys()))
                 tipo = tipos_bd[tipo_mostrar]
-                host = st.text_input("Host", value="localhost")
-                user = st.text_input("Usuario")
-                password = st.text_input("Contraseña", type="password")
-                database = st.text_input("Base de Datos")
+                host = st.text_input("**Host**", value="localhost")
+                user = st.text_input("**Usuario**")
+                password = st.text_input("**Contraseña**", type="password")
+                database = st.text_input("**Base de Datos**")
 
                 if st.button("Conectar análisis"):
                     conn = conectar_bd(tipo,user, password, host, database)
@@ -848,9 +836,9 @@ def seleccion_conexion():
         elif opcion_fuente in ["Archivo CSV", "Archivo JSON"]:
             if not st.session_state["conectado_analisis"]:
                 if opcion_fuente == "Archivo CSV":
-                    archivo = st.file_uploader("Sube un archivo", type=["csv"])
+                    archivo = st.file_uploader("**Sube un archivo**", type=["csv"])
                 elif opcion_fuente == "Archivo JSON":
-                    archivo = st.file_uploader("Sube un archivo", type=["json"])
+                    archivo = st.file_uploader("**Sube un archivo**", type=["json"])
 
                 if archivo is not None:
                     st.session_state["nombre_archivo"] = archivo.name
@@ -860,10 +848,12 @@ def seleccion_conexion():
                         st.session_state["df_archivo"] = df_spark
                         st.session_state["spark"] = spark
                         st.session_state["archivo_info"] = properties
+                        st.session_state["columnas_archivo"] = df_spark.toPandas().columns.tolist()
                         st.success(f"Archivo '{archivo.name}' cargado correctamente.")
                         st.session_state["conectado_analisis"] = True
                         st.session_state.page = 'inicio'
                         st.rerun()
+
                     else:
                         st.error("Hubo un error al cargar el archivo.")
 
@@ -872,21 +862,33 @@ def descargar_resultados(df):
     """
     Descarga un archivo JSON con el conjunto de resultados obtenidos de ejecutar el conjunto de tests.
     """
+    deshabilitado = True
+    json_bytes = b""
+    file_name = ""
+    if df is not None:
+        if 'Fecha y hora de ejecución' in df.columns:
+            df['Fecha y hora de ejecución'] = df['Fecha y hora de ejecución'].astype(str)
+        json_str = df.to_json(orient="records", indent=2, force_ascii=False)
+        json_bytes = io.BytesIO(json_str.encode("utf-8"))
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"resultado_analisis_{timestamp}.json"
+        deshabilitado = False
+    else:
+        deshabilitado = True
 
-    if 'Fecha y hora de ejecución' in df.columns:
-        df['Fecha y hora de ejecución'] = df['Fecha y hora de ejecución'].astype(str)
-    json_str = df.to_json(orient="records", indent=2, force_ascii=False)
-    json_bytes = io.BytesIO(json_str.encode("utf-8"))
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name = f"resultado_analisis_{timestamp}.json"
     # Botón de descarga
     st.download_button(
         label="📤 Descargar resultados",
         data=json_bytes,
         file_name=file_name,
         mime="application/json",
-        use_container_width = True
+        use_container_width = True,
+        disabled = deshabilitado
     )
+
+    if df is None:
+        st.error("No hay resultados que descargar")
+
 
 
 def cargar_conjunto_test(archivo_test):
@@ -913,26 +915,39 @@ def cargar_conjunto_test(archivo_test):
         st.error(f"Error al leer el archivo JSON: {e}")
 
 
-def descargar_conjunto_test():
+def descargar_conjunto_test(vacio):
     """
     Descarga un archivo JSON con el conjunto de test definidos y guardados por el usuario final.
     """
-
-    # Convertir directamente a lista y guardar en formato JSON adecuado
-    tests_lista = list(st.session_state["tests_seleccionados"])  # Asegura que es una lista
-    tests_json = json.dumps(tests_lista, indent=4)
-    # Convertir a bytes para descargar
-    buffer = BytesIO()
-    buffer.write(tests_json.encode('utf-8'))
-    buffer.seek(0)
+    buffer = ""
+    file_name = ""
+    if vacio is False:
+        # Convertir directamente a lista y guardar en formato JSON adecuado
+        tests_lista = list(st.session_state["tests_seleccionados"])  # Asegura que es una lista
+        tests_json = json.dumps(tests_lista, indent=4)
+        # Convertir a bytes para descargar
+        buffer = BytesIO()
+        buffer.write(tests_json.encode('utf-8'))
+        buffer.seek(0)
+        if nombre_test_calidad == "":
+            disponible = True
+        else:
+            disponible = False
+    else:
+        disponible = True
     st.download_button(
         label="📤 Descargar conjunto de test",
         data=buffer,
         file_name=nombre_test_calidad,
         mime="application/json",
-        use_container_width = True
+        use_container_width = True,
+        disabled=disponible
 
     )
+    if nombre_test_calidad == "" and  vacio is False:
+        st.error("Introduce un nombre para tu plan de calidad de datos")
+    elif vacio is True:
+        st.error("No hay test guardados")
 
 
 def generar_df_modificado(spark, res, tipo_ejecucion, tipo, *componentes):
