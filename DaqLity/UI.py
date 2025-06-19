@@ -14,7 +14,7 @@ from Analisis_Generalizados.precision import analizar_precision
 from Analisis_Generalizados.completitud import analizar_completitud
 from Analisis_Generalizados.actualidad import analizar_actualidad
 from io import BytesIO
-from pyspark.sql.functions import concat, col, lit, current_timestamp, concat_ws
+from pyspark.sql.functions import concat, col, lit, current_timestamp, concat_ws, date_format
 from pyspark.sql import functions as F
 from pydeequ.verification import VerificationResult
 from pydeequ.analyzers import AnalyzerContext
@@ -36,13 +36,13 @@ def ui():
         archivos, tabla_seleccionada, nombre_test_calidad
 
 
-    gestion_estilo_UI()
+    gestion_estilo_ui()
 
     if 'page' not in st.session_state:
         st.session_state.page = 'conexion_bd'
 
     if st.session_state.page == 'conexion_bd':
-        col1, col2, col3 = st.columns([3.5, 3.5, 3.5])
+        col1, col2, _ = st.columns([3.5, 3.5, 3.5])
         with col2:
             with st.container(border=True):
                 default_session_state = {
@@ -107,7 +107,6 @@ def ui():
 
             # Si hay un archivo CSV/JSON cargado
             elif "df_archivo" in st.session_state:
-                df_cargado = st.session_state["df_archivo"]
                 columnas = st.session_state.get("columnas_archivo", [])
                 nombre_archivo = st.session_state["nombre_archivo"]
                 tabla_nombre = os.path.splitext(nombre_archivo)[0]
@@ -177,7 +176,7 @@ def ui():
                 if st.button("🗑️ Eliminar test anterior",disabled= not eliminar,use_container_width=True):
                     if st.session_state["tests_seleccionados"]:
                         st.session_state.setdefault("tests_seleccionados", []).pop()
-                        st.success(f"Ultimo test eliminado correctamente.")
+                        st.success("Ultimo test eliminado correctamente.")
                     else:
                         st.error("No hay tests guardados actualmente.")
 
@@ -231,7 +230,7 @@ def ui():
             gestion_evolucion_analisis(archivos)
 
 
-def gestion_estilo_UI():
+def gestion_estilo_ui():
     # Configuración de la vista de la ventana
     st.set_page_config(
         page_title="DaqLity",
@@ -393,20 +392,22 @@ def gestion_evolucion_analisis(archivos):
     """
 
     global archivo
+    nombre_indicador = "Nombre de indicador"
+    nombre_fecha = "Fecha y hora de ejecución"
     if archivos:
         df_final = []
         for archivo in archivos:
             try:
                 df = pd.read_json(archivo)
-                if {"Nombre de indicador", "Porcentaje", "Fecha y hora de ejecución"}.issubset(df.columns):
-                    df_filtrado = df[["Nombre de indicador", "Porcentaje", "Fecha y hora de ejecución"]].copy()
+                if {nombre_indicador, "Porcentaje", nombre_fecha}.issubset(df.columns):
+                    df_filtrado = df[[nombre_indicador, "Porcentaje", nombre_fecha]].copy()
 
-                    fecha_analisis = df_filtrado["Fecha y hora de ejecución"].iloc[0]
+                    fecha_analisis = df_filtrado[nombre_fecha].iloc[0]
                     df_filtrado["Evaluacion"] = f"{fecha_analisis}"
                     df_final.append(df_filtrado)
                 else:
                     st.warning(f"{archivo.name} no es correcto o no esta bien estructurado")
-            except:
+            except FileNotFoundError:
                 st.error(f"Error al leer {archivo.name}")
 
         if df_final:
@@ -415,7 +416,7 @@ def gestion_evolucion_analisis(archivos):
             # Gráfica de líneas
             fig = px.line(
                 df_combinado,
-                x="Nombre de indicador",
+                x=nombre_indicador,
                 y="Porcentaje",
                 color="Evaluacion",
                 markers=True,
@@ -423,7 +424,7 @@ def gestion_evolucion_analisis(archivos):
             )
 
             fig.update_layout(
-                xaxis_title="Nombre de indicador",
+                xaxis_title=nombre_indicador,
                 yaxis_title="Porcentaje (%)",
                 legend_title="Evaluacion",
                 hovermode="x unified"
@@ -478,40 +479,9 @@ def gestion_ejecucion_test(resultado):
             else:
                 st.error("No hay fuente de datos conectada.")
                 continue
-
-            df_resultado = None
-            match tipo:
-                case "Completitud":
-                    res = analizar_completitud(spark, df, columna)
-                    df_resultado = generar_df_modificado(spark, res,
-                                                         "Analyzer", tipo, tabla, columna)
-                case "Exactitud":
-                    res = analizar_exactitud(spark, df, columna, patron, tipo_exactitud)
-                    df_resultado = generar_df_modificado(spark, res,
-                                                         "Analyzer", tipo, tipo_exactitud, tabla, columna)
-                case "Credibilidad":
-                    res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
-                    df_resultado = generar_df_modificado(spark, res,
-                                                         "Analyzer", tipo, tipo_credibilidad, tabla, columna)
-
-                case "Precision":
-                    res = analizar_precision(spark, df, columna, num_decimales)
-                    df_resultado = generar_df_modificado(spark, res,
-                                                         "Analyzer", tipo, tabla, columna)
-
-                case "Integridad Referencial":
-                    if "conn" in st.session_state:
-                        df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
-                        res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
-                        df_resultado = generar_df_modificado(spark, res,
-                                                             "Verification", tipo, tabla, tabla_2, columna)
-                    else:
-                        st.warning("La integridad referencial no aplica sobre archivos simples.")
-
-                case "Actualidad":
-                    res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla)
-                    df_resultado = generar_df_modificado(spark, res,
-                                                         "Verification", tipo, tabla, columna)
+            df_resultado = gestion_llamadas_tipo_test(columna, columna_2, df, None, num_decimales, patron,
+                                                      properties, schema, spark, tabla, tabla_2, tiempo_limite, tipo,
+                                                      tipo_credibilidad, tipo_exactitud, url)
 
             if df_resultado and df_resultado.count() > 0:
                 df_resultado_formateado = creacion_dataframe_personalizado(spark, df_resultado)
@@ -525,6 +495,43 @@ def gestion_ejecucion_test(resultado):
         return resultado
     else:
         st.warning("No se generaron resultados para mostrar.")
+
+
+def gestion_llamadas_tipo_test(columna, columna_2, df, df_resultado, num_decimales, patron, properties, schema, spark,
+                               tabla, tabla_2, tiempo_limite, tipo, tipo_credibilidad, tipo_exactitud, url):
+    match tipo:
+        case "Completitud":
+            res = analizar_completitud(spark, df, columna)
+            df_resultado = generar_df_modificado(spark, res,
+                                                 "Analyzer", tipo, tabla, columna)
+        case "Exactitud":
+            res = analizar_exactitud(spark, df, columna, patron, tipo_exactitud)
+            df_resultado = generar_df_modificado(spark, res,
+                                                 "Analyzer", tipo, tipo_exactitud, tabla, columna)
+        case "Credibilidad":
+            res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
+            df_resultado = generar_df_modificado(spark, res,
+                                                 "Analyzer", tipo, tipo_credibilidad, tabla, columna)
+
+        case "Precision":
+            res = analizar_precision(spark, df, columna, num_decimales)
+            df_resultado = generar_df_modificado(spark, res,
+                                                 "Analyzer", tipo, tabla, columna)
+
+        case "Integridad Referencial":
+            if "conn" in st.session_state:
+                df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
+                res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
+                df_resultado = generar_df_modificado(spark, res,
+                                                     "Verification", tipo, tabla, tabla_2, columna)
+            else:
+                st.warning("La integridad referencial no aplica sobre archivos simples.")
+
+        case "Actualidad":
+            res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla)
+            df_resultado = generar_df_modificado(spark, res,
+                                                 "Verification", tipo, tabla, columna)
+    return df_resultado
 
 
 def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, tabla_seleccionada=None,
@@ -552,69 +559,101 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
     global tipo_credibilidad, patron, tipo_exactitud, num_decimales, tabla_seleccionada_2, columna_2, tiempo_limite
     match tipo_analisis:
         case "Credibilidad":
-            tipos_credibilidad_opciones = ["Patron", "Conjunto valores"]
-            tipo_credibilidad = st.selectbox("**Selecciona el tipo**", tipos_credibilidad_opciones)
-            patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
-            st.caption("***Ejemplo patrón: ^(?=(?:\\D*\\d){9,})[^\\p{L}]*$***")
-            st.caption("***Ejemplo posibles valores: Main Office,Shipping***")
-            if not patron.strip():
-                st.warning("El campo 'patrón' no puede estar vacío.")
-                valido = False
-            else:
-                test_config.update({
-                    "patron": patron,
-                    "tipo_credibilidad": tipo_credibilidad
-                })
+            valido = gestion_ui_credibilidad(test_config, valido)
 
         case "Exactitud":
-            tipos_exactitud_opciones = ["Sintactica", "Semantica"]
-            tipo_exactitud = st.selectbox("**Selecciona el tipo**", tipos_exactitud_opciones)
-            patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
-            st.caption("***Ejemplo sintáctica: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$***")
-            st.caption("***Ejemplo semántica: Main Office,Shipping***")
-            if not patron.strip():
-                st.warning("El campo 'patrón' no puede estar vacío.")
-                valido = False
-            else:
-                test_config.update({
-                    "patron": patron,
-                    "tipo_exactitud": tipo_exactitud
-                })
+            valido = gestion_ui_exactitud(test_config, valido)
 
         case "Precision":
-            num_decimales = st.text_input("**Introduce la cantidad de decimales que debe tener la columna**")
-            if not num_decimales.isdigit():
-                st.warning("Debes introducir un número entero válido.")
-                valido = False
-            else:
-                test_config["num_decimales"] = num_decimales
+            valido = gestion_ui_precision(test_config, valido)
 
         case "Integridad Referencial":
-            if "conn" in st.session_state:
-                tabla_seleccionada_2 = st.selectbox("**Selecciona segunda tabla**", tablas)
-                columnas_opciones = listar_columnas(spark, url, properties,
-                                                    f"{schema_seleccionado}.{tabla_seleccionada_2}")
-                columna_2 = st.selectbox("**Selecciona la segunda columna**", columnas_opciones)
-                if not tabla_seleccionada_2 or not columna_2:
-                    st.warning("Debes seleccionar una tabla y una columna válidas.")
-                    valido = False
-                else:
-                    test_config.update({
-                        "columna_2": columna_2,
-                        "tabla_2": tabla_seleccionada_2
-                    })
-            else:
-                st.warning("La integridad referencial no aplica sobre archivos simples.")
+            valido = gestion_ui_integridad_referencial(properties, schema_seleccionado, spark, tablas, test_config, url,
+                                                       valido)
 
         case "Actualidad":
-            tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**")
-            st.caption("***Ejemplo: 2006-01-01 00:00:00***")
-            if not tiempo_limite.strip():
-                st.warning("La fecha límite no puede estar vacía.")
-                valido = False
-            else:
-                test_config["tiempo_limite"] = tiempo_limite
+            valido = gestion_ui_actualidad(test_config, valido)
     return valido
+
+
+def gestion_ui_actualidad(test_config, valido):
+    global tiempo_limite
+    tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**")
+    st.caption("***Ejemplo: 2006-01-01 00:00:00***")
+    if not tiempo_limite.strip():
+        st.warning("La fecha límite no puede estar vacía.")
+        valido = False
+    else:
+        test_config["tiempo_limite"] = tiempo_limite
+    return valido
+
+
+def gestion_ui_integridad_referencial(properties, schema_seleccionado, spark, tablas, test_config, url, valido):
+    global tabla_seleccionada_2, columna_2
+    if "conn" in st.session_state:
+        tabla_seleccionada_2 = st.selectbox("**Selecciona segunda tabla**", tablas)
+        columnas_opciones = listar_columnas(spark, url, properties,
+                                            f"{schema_seleccionado}.{tabla_seleccionada_2}")
+        columna_2 = st.selectbox("**Selecciona la segunda columna**", columnas_opciones)
+        if not tabla_seleccionada_2 or not columna_2:
+            st.warning("Debes seleccionar una tabla y una columna válidas.")
+            valido = False
+        else:
+            test_config.update({
+                "columna_2": columna_2,
+                "tabla_2": tabla_seleccionada_2
+            })
+    else:
+        st.warning("La integridad referencial no aplica sobre archivos simples.")
+    return valido
+
+
+def gestion_ui_precision(test_config, valido):
+    global num_decimales
+    num_decimales = st.text_input("**Introduce la cantidad de decimales que debe tener la columna**")
+    if not num_decimales.isdigit():
+        st.warning("Debes introducir un número entero válido.")
+        valido = False
+    else:
+        test_config["num_decimales"] = num_decimales
+    return valido
+
+
+def gestion_ui_exactitud(test_config, valido):
+    global tipo_exactitud, patron
+    tipos_exactitud_opciones = ["Sintactica", "Semantica"]
+    tipo_exactitud = st.selectbox("**Selecciona el tipo**", tipos_exactitud_opciones)
+    patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
+    st.caption("***Ejemplo sintáctica: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$***")
+    st.caption("***Ejemplo semántica: Main Office,Shipping***")
+    if not patron.strip():
+        st.warning("El campo 'patrón' no puede estar vacío.")
+        valido = False
+    else:
+        test_config.update({
+            "patron": patron,
+            "tipo_exactitud": tipo_exactitud
+        })
+    return valido
+
+
+def gestion_ui_credibilidad(test_config, valido):
+    global tipo_credibilidad, patron
+    tipos_credibilidad_opciones = ["Patron", "Conjunto valores"]
+    tipo_credibilidad = st.selectbox("**Selecciona el tipo**", tipos_credibilidad_opciones)
+    patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
+    st.caption("***Ejemplo patrón: ^(?=(?:\\D*\\d){9,})[^\\p{L}]*$***")
+    st.caption("***Ejemplo posibles valores: Main Office,Shipping***")
+    if not patron.strip():
+        st.warning("El campo 'patrón' no puede estar vacío.")
+        valido = False
+    else:
+        test_config.update({
+            "patron": patron,
+            "tipo_credibilidad": tipo_credibilidad
+        })
+    return valido
+
 
 def conectar_bd(tipo, user, password, server, database):
     """
@@ -797,11 +836,11 @@ def listar_schemas(spark, url, props):
             properties=props
         )
         # Obtener esquemas que tienen al menos una tabla
-        esquemas_con_tablas = set([row["TABLE_SCHEMA"] for row in tablas_df.collect()])
+        esquemas_con_tablas = {row["TABLE_SCHEMA"] for row in tablas_df.collect()}
         # Filtrar esquemas válidos
         esquemas_validos = [esquema for esquema in esquemas if esquema in esquemas_con_tablas]
         return esquemas_validos
-    except Exception as e:
+    except Exception:
         st.error("Ha habido un error al tratar de listar los esquemas disponibles")
 
 
@@ -866,70 +905,80 @@ def seleccion_conexion():
     if st.session_state["seleccionada_fuente"]:
         # Fuente de datos base de datos
         if opcion_fuente == "Base de datos":
-            if not st.session_state["conectado_analisis"]:
-                tipos_bd = {
-                    "SQL Server": "sqlserver",
-                    "PostgreSQL": "postgresql",
-                    "MySQL": "mysql",
-                    "MariaDB": "mariadb",
-                    "Oracle": "oracle"
-                }
-                tipo_mostrar = st.selectbox("**Tipo de base de datos**", list(tipos_bd.keys()))
-                tipo = tipos_bd[tipo_mostrar]
-                host = st.text_input("**Host**", value="localhost")
-                user = st.text_input("**Usuario**")
-                password = st.text_input("**Contraseña**", type="password")
-                database = st.text_input("**Base de Datos**")
-
-                if st.button("Conectar análisis",use_container_width=True):
-                    conn = conectar_bd(tipo,user, password, host, database)
-                    if conn:
-                        st.session_state["conn"] = conn
-                        st.session_state["conectado_analisis"] = True
-                        st.success("Conectado para análisis")
-                        st.session_state.page = 'inicio'
-                        st.rerun()
-                    else:
-                        st.error("Error al conectar para análisis")
+            gestion_conexion_bd()
         # Fuente de datos desde archivo CSV o JSON
         elif opcion_fuente in ["Archivo CSV", "Archivo JSON"]:
-            if not st.session_state["conectado_analisis"]:
-                if opcion_fuente == "Archivo CSV":
-                    archivo = st.file_uploader("**Sube un archivo**", type=["csv"])
-                elif opcion_fuente == "Archivo JSON":
-                    archivo = st.file_uploader("**Sube un archivo**", type=["json"])
+            gestion_conexion_archivos(opcion_fuente)
 
-                if archivo is not None:
-                    st.session_state["nombre_archivo"] = archivo.name
-                    resultado = cargar_archivo(archivo)
-                    if resultado:
-                        spark, df_spark, properties = resultado
-                        st.session_state["df_archivo"] = df_spark
-                        st.session_state["spark"] = spark
-                        st.session_state["archivo_info"] = properties
-                        st.session_state["columnas_archivo"] = df_spark.toPandas().columns.tolist()
-                        st.success(f"Archivo '{archivo.name}' cargado correctamente.")
-                        st.session_state["conectado_analisis"] = True
-                        st.session_state.page = 'inicio'
-                        st.rerun()
 
-                    else:
-                        st.error("Hubo un error al cargar el archivo.")
+def gestion_conexion_archivos(opcion_fuente):
+    global archivo, spark, properties
+    if not st.session_state["conectado_analisis"]:
+        if opcion_fuente == "Archivo CSV":
+            archivo = st.file_uploader("**Sube un archivo**", type=["csv"])
+        elif opcion_fuente == "Archivo JSON":
+            archivo = st.file_uploader("**Sube un archivo**", type=["json"])
+
+        if archivo is not None:
+            st.session_state["nombre_archivo"] = archivo.name
+            resultado = cargar_archivo(archivo)
+            if resultado:
+                spark, df_spark, properties = resultado
+                st.session_state["df_archivo"] = df_spark
+                st.session_state["spark"] = spark
+                st.session_state["archivo_info"] = properties
+                st.session_state["columnas_archivo"] = df_spark.toPandas().columns.tolist()
+                st.success(f"Archivo '{archivo.name}' cargado correctamente.")
+                st.session_state["conectado_analisis"] = True
+                st.session_state.page = 'inicio'
+                st.rerun()
+
+            else:
+                st.error("Hubo un error al cargar el archivo.")
+
+
+def gestion_conexion_bd():
+    if not st.session_state["conectado_analisis"]:
+        tipos_bd = {
+            "SQL Server": "sqlserver",
+            "PostgreSQL": "postgresql",
+            "MySQL": "mysql",
+            "MariaDB": "mariadb",
+            "Oracle": "oracle"
+        }
+        tipo_mostrar = st.selectbox("**Tipo de base de datos**", list(tipos_bd.keys()))
+        tipo = tipos_bd[tipo_mostrar]
+        host = st.text_input("**Host**", value="localhost")
+        user = st.text_input("**Usuario**")
+        password = st.text_input("**Contraseña**", type="password")
+        database = st.text_input("**Base de Datos**")
+
+        if st.button("Conectar análisis", use_container_width=True):
+            conn = conectar_bd(tipo, user, password, host, database)
+            if conn:
+                st.session_state["conn"] = conn
+                st.session_state["conectado_analisis"] = True
+                st.success("Conectado para análisis")
+                st.session_state.page = 'inicio'
+                st.rerun()
+            else:
+                st.error("Error al conectar para análisis")
 
 
 def descargar_resultados(df):
     """
     Descarga un archivo JSON con el conjunto de resultados obtenidos de ejecutar el conjunto de tests.
     """
+    nombre_fecha = 'Fecha y hora de ejecución'
     deshabilitado = True
     json_bytes = b""
     file_name = ""
     if df is not None:
-        if 'Fecha y hora de ejecución' in df.columns:
-            df['Fecha y hora de ejecución'] = df['Fecha y hora de ejecución'].astype(str)
+        if nombre_fecha in df.columns:
+            df[nombre_fecha] = df[nombre_fecha].astype(str)
         json_str = df.to_json(orient="records", indent=2, force_ascii=False)
         json_bytes = io.BytesIO(json_str.encode("utf-8"))
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M")
         file_name = f"resultado_analisis_{timestamp}.json"
         deshabilitado = False
     else:
@@ -979,7 +1028,6 @@ def descargar_conjunto_test(vacio):
     Descarga un archivo JSON con el conjunto de test definidos y guardados por el usuario final.
     """
     buffer = ""
-    file_name = ""
     if vacio is False:
         # Convertir directamente a lista y guardar en formato JSON adecuado
         tests_lista = list(st.session_state["tests_seleccionados"])  # Asegura que es una lista
@@ -1065,7 +1113,7 @@ def creacion_dataframe_personalizado(spark,df):
         "Porcentaje",
         concat((col("value") * 100).cast("int").cast("String"), lit("%"))
     )
-    df = df.withColumn("Fecha y hora de ejecución", current_timestamp())
+    df = df.withColumn("Fecha y hora de ejecución", date_format(current_timestamp(), "yyyy-MM-dd_HH:mm"))
     df = (df.withColumnRenamed("instance","Nombre de indicador")
           .withColumnRenamed("value","Valor"))
     return df

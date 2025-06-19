@@ -4,12 +4,11 @@ os.environ["SPARK_VERSION"] = "3.5"
 from pyspark.sql.functions import col, when, lit, concat
 from pydeequ import Check, CheckLevel
 from pydeequ.verification import VerificationSuite, VerificationResult
-
-import datetime
+from pydeequ.analyzers import Uniqueness, PatternMatch, Minimum, Completeness, AnalysisRunner, AnalyzerContext
+from pyspark.sql import SparkSession
 from dash import dash_table, dash
 from dash import html
 import pandas as pd
-from pydeequ.analyzers import *
 
 # Configurar la versión de Spark (opcional si está bien instalado)
 
