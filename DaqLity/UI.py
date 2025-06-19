@@ -462,14 +462,16 @@ def gestion_ejecucion_test(resultado):
             elif "df_archivo" in st.session_state:
                 # Como no se carga
                 if "spark" not in st.session_state:
-                    spark = SparkSession.builder \
-                        .appName("DaqLity") \
-                        .config("spark.sql.shuffle.partitions", "8") \
-                        .getOrCreate()
+                    spark = (SparkSession.builder
+                             .appName("DaqLity")
+                             .config("spark.sql.shuffle.partitions", "8")
+                             .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
+                             .getOrCreate())
                     st.session_state["spark"] = spark
                 else:
                     spark = st.session_state["spark"]
                 df = st.session_state["df_archivo"]
+
                 if columna not in df.columns:
                     st.warning(f"La columna '{columna}' no existe en el archivo. Saltando test.")
                     continue
@@ -479,10 +481,37 @@ def gestion_ejecucion_test(resultado):
             else:
                 st.error("No hay fuente de datos conectada.")
                 continue
-            df_resultado = gestion_llamadas_tipo_test(columna, columna_2, df, None, num_decimales, patron,
-                                                      properties, schema, spark, tabla, tabla_2, tiempo_limite, tipo,
-                                                      tipo_credibilidad, tipo_exactitud, url)
-
+            df_resultado = None
+            match tipo:
+                case "Completitud":
+                    res = analizar_completitud(spark, df, columna)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Analyzer", tipo, tabla, columna)
+                case "Exactitud":
+                    res = analizar_exactitud(spark, df, columna, patron, tipo_exactitud)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Analyzer", tipo, tipo_exactitud, tabla, columna)
+                case "Credibilidad":
+                    res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Analyzer", tipo, tipo_credibilidad, tabla, columna)
+                case "Precision":
+                    res = analizar_precision(spark, df, columna, num_decimales)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Analyzer", tipo, tabla, columna)
+                case "Integridad Referencial":
+                    if "conn" in st.session_state:
+                        df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
+                        res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
+                        df_resultado = generar_df_modificado(spark, res,
+                                                             "Verification", tipo, tabla, tabla_2, columna)
+                    else:
+                        st.warning("La integridad referencial no aplica sobre archivos simples.")
+                case "Actualidad":
+                    res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Verification", tipo, tabla, columna)
+            print(df_resultado)
             if df_resultado and df_resultado.count() > 0:
                 df_resultado_formateado = creacion_dataframe_personalizado(spark, df_resultado)
                 df_pandas = df_resultado_formateado.toPandas()
@@ -495,43 +524,6 @@ def gestion_ejecucion_test(resultado):
         return resultado
     else:
         st.warning("No se generaron resultados para mostrar.")
-
-
-def gestion_llamadas_tipo_test(columna, columna_2, df, df_resultado, num_decimales, patron, properties, schema, spark,
-                               tabla, tabla_2, tiempo_limite, tipo, tipo_credibilidad, tipo_exactitud, url):
-    match tipo:
-        case "Completitud":
-            res = analizar_completitud(spark, df, columna)
-            df_resultado = generar_df_modificado(spark, res,
-                                                 "Analyzer", tipo, tabla, columna)
-        case "Exactitud":
-            res = analizar_exactitud(spark, df, columna, patron, tipo_exactitud)
-            df_resultado = generar_df_modificado(spark, res,
-                                                 "Analyzer", tipo, tipo_exactitud, tabla, columna)
-        case "Credibilidad":
-            res = analizar_credibilidad(spark, df, columna, patron, tipo_credibilidad)
-            df_resultado = generar_df_modificado(spark, res,
-                                                 "Analyzer", tipo, tipo_credibilidad, tabla, columna)
-
-        case "Precision":
-            res = analizar_precision(spark, df, columna, num_decimales)
-            df_resultado = generar_df_modificado(spark, res,
-                                                 "Analyzer", tipo, tabla, columna)
-
-        case "Integridad Referencial":
-            if "conn" in st.session_state:
-                df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
-                res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
-                df_resultado = generar_df_modificado(spark, res,
-                                                     "Verification", tipo, tabla, tabla_2, columna)
-            else:
-                st.warning("La integridad referencial no aplica sobre archivos simples.")
-
-        case "Actualidad":
-            res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla)
-            df_resultado = generar_df_modificado(spark, res,
-                                                 "Verification", tipo, tabla, columna)
-    return df_resultado
 
 
 def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, tabla_seleccionada=None,
@@ -757,59 +749,64 @@ def conectar_bd(tipo, user, password, server, database):
         return None
 
 
+from pyspark.sql import SparkSession, functions as F
+
 def cargar_archivo(archivo):
     """
-    Carga el archivo en formato CSV o JSON y formatea los atributos que contengan valores que PyDeequ no detecta.
+    Carga archivos CSV o JSON usando Spark directamente, y limpia valores que no detecta PyDeequ como nulos.
 
     Args:
         archivo (File): Archivo que se quiere cargar
 
     Returns:
-        El spark, el dataframe de spark y las propiedades creadas para simular para poder ser utilizado en análisis.
+        Tuple: (spark, spark DataFrame, properties)
     """
-
     try:
         # Iniciar SparkSession si no existe
+        global spark
         if 'spark' not in globals():
-            spark = SparkSession.builder \
-                .appName("📁 Carga desde Archivo") \
-                .config("spark.sql.shuffle.partitions", "8") \
-                .getOrCreate()
-        else:
-            spark = globals()['spark']
-        # Determinar tipo de archivo
-        if archivo.name.endswith(".csv"):
-            df_pandas = pd.read_csv(archivo)
-        elif archivo.name.endswith(".json"):
-            df_pandas = pd.read_json(archivo)
+            spark = (SparkSession.builder
+                     .appName("📁 Carga desde Archivo")
+                     .config("spark.sql.shuffle.partitions", "8")
+                     .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
+                     .getOrCreate())
+
+        # Determinar formato
+        nombre = archivo.name
+        formato = archivo.type
+
+        # Guardar archivo temporalmente en una ruta válida
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_file:
+            ruta_temp = tmp_file.name
+            tmp_file.write(archivo.read())
+
+        if nombre.endswith(".csv"):
+            df_spark = spark.read \
+                .option("header", "true") \
+                .option("delimiter", ";") \
+                .csv(ruta_temp)
+        elif nombre.endswith(".json"):
+            df_spark = spark.read.json(ruta_temp)
         else:
             raise ValueError("Formato de archivo no soportado")
-        # Convertir a Spark DataFrame
-        df_spark = spark.createDataFrame(df_pandas)
 
-        # Limpieza porque PyDeequ en archivos CSV no detecta como nulos NaN, NULL, vacio o null
-        for col_name in df_spark.columns:
-            df_spark = df_spark.withColumn(
-                col_name,
-                F.when(
-                    (F.col(f"`{col_name}`").isNull()) |
-                    (F.col(f"`{col_name}`") == "") |
-                    (F.col(f"`{col_name}`") == "null") |
-                    (F.col(f"`{col_name}`") == "NULL") |
-                    (F.col(f"`{col_name}`") == "NaN"),
-                    F.lit(None)
-                ).otherwise(F.col(f"`{col_name}`"))
-            )
-        # Simular properties para compatibilidad
+        # Valores que PyDeequ no detecta como nulos
+        valores_a_reemplazar = ["", "null", "NULL", "NaN"]
+        df_spark = df_spark.replace(valores_a_reemplazar, None)
+
+        # Simular propiedades
         properties = {
             "driver": "pyspark.sql.DataFrame",
-            "source": archivo.name,
-            "format": archivo.type
+            "source": nombre,
+            "format": formato
         }
+
         return spark, df_spark, properties
+
     except Exception as e:
         print(f"Error al cargar archivo: {e}")
         return None
+
 
 
 def listar_schemas(spark, url, props):
