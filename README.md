@@ -55,6 +55,7 @@ Después de clonar el repositorio, accede al directorio principal de la herramie
 cd ./TFG_Calidad_Datos/DaqLity
 ```
 
+### OPCIÓN UBUNTU
 ### 3. Crear un entorno virtual (opcional pero recomendable)
 
 Se recomienda crear un entorno virtual para aislar las dependencias del proyecto:
@@ -64,7 +65,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 4. Instalar las dependencias necesarias
+### 3.1. Instalar las dependencias necesarias
 
 Ejecuta los siguientes comandos para actualizar el sistema, instalar Java y configurar las variables de entorno, y finalmente instalar las dependencias de Python necesarias:
 
@@ -88,7 +89,85 @@ wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.30/mysql-conn
 wget https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.2.0.jre8/mssql-jdbc-12.10.0.jre8.jar
 wget https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.1.4/mariadb-java-client-3.1.4.jar
 
+```
 
+### OPCIÓN WINDOWS
+### 4. Instalar dependencias necesarias
+
+Guía de Instalación y Configuración de Java, Spark y Hadoop en Windows
+
+
+Instalar Java JDK 17
+```bash
+Descargar desde:
+https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html
+
+Instalar en:
+C:\Program Files\Java\jdk-17
+
+Configurar variables de entorno:
+JAVA_HOME → C:\Program Files\Java\jdk-17
+
+Agregar a Path:
+%JAVA_HOME%\bin
+```
+
+Instalar Apache Spark
+```bash
+Descargar desde:
+https://spark.apache.org/downloads.html
+
+Versión: Spark 3.5.0
+Package: Pre-built for Apache Hadoop 3
+
+Descomprimir en:
+C:\spark\spark-3.5.0-bin-hadoop3
+
+Configurar variables de entorno:
+SPARK_HOME → C:\spark\spark-3.5.0-bin-hadoop3
+
+Agregar a Path:
+%SPARK_HOME%\bin
+```
+
+Instalar winutils.exe (soporte Hadoop en Windows)
+
+```bash
+Crear carpeta:
+C:\hadoop\bin
+
+Descargar winutils.exe compatible con Hadoop 3.x:
+https://github.com/cdarlint/winutils
+
+Copiar winutils.exe en:
+C:\hadoop\bin
+
+Configurar variable de entorno:
+HADOOP_HOME → C:\hadoop
+
+Agregar a Path:
+%HADOOP_HOME%\bin
+```
+
+Una vez instalado todo esto reiniciar la terminal y acceder desde tu IDE de python preferido a la terminal y ejecutar:
+
+```bash
+pip install streamlit
+pip install pyspark==3.5.0
+pip install --upgrade setuptools wheel
+pip install plotly
+pip install pydeequ
+```
+
+Seguido instalar los archivos jar de los jdbc necesarios y meterlos en una carpeta llamada "jars" dentro del proyecto, que habrá que crear:
+
+```bash
+
+mkdir jars && cd jars
+https://github.com/microsoft/mssql-jdbc/releases/download/v12.10.0/mssql-jdbc-12.10.0.jre8.jar
+https://jdbc.postgresql.org/download/postgresql-42.6.0.jar
+https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.2.0.jre8/mssql-jdbc-12.10.0.jre8.jar
+https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.1.4/mariadb-java-client-3.1.4.jar
 ```
 
 ### 5. Ejecutar la herramienta

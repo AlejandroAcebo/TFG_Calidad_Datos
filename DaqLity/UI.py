@@ -1,6 +1,7 @@
 import datetime
 import io
 import os
+import tempfile
 import traceback
 from time import sleep
 
@@ -664,7 +665,10 @@ def conectar_bd(tipo, user, password, server, database):
 
     tipo = tipo.lower()
 
-    JARS_PATH = "/home/x/Desktop/TFG_Calidad_Datos/DaqLity/jars"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # Ruta completa a /jars
+    JARS_PATH = os.path.join(BASE_DIR, "jars")
 
     config_bd = {
         "sqlserver": {
@@ -683,7 +687,7 @@ def conectar_bd(tipo, user, password, server, database):
         "mysql": {
             "driver_class": "com.mysql.cj.jdbc.Driver",
             "default_port": 3306,
-            "jar_file": "mysql-connector-java-8.0.33.jar",
+            "jar_file": "mysql-connector-java-8.0.30.jar",
             "jdbc_url": lambda s, p, d: f"jdbc:mysql://{s}:{p}/{d}?useSSL=false"
         },
         "mariadb": {
@@ -691,12 +695,6 @@ def conectar_bd(tipo, user, password, server, database):
             "default_port": 3306,
             "jar_file": "mariadb-java-client-3.1.4.jar",
             "jdbc_url": lambda s, p, d: f"jdbc:mariadb://{s}:{p}/{d}"
-        },
-        "oracle": {
-            "driver_class": "oracle.jdbc.OracleDriver",
-            "default_port": 1521,
-            "jar_file": "ojdbc11-21.9.0.0.jar",
-            "jdbc_url": lambda s, p, d: f"jdbc:oracle:thin:@{s}:{p}:{d}"
         }
     }
 
@@ -762,7 +760,6 @@ def cargar_archivo(archivo):
         Tuple: (spark, spark DataFrame, properties)
     """
     try:
-        # Iniciar SparkSession si no existe
         global spark
         if 'spark' not in globals():
             spark = (SparkSession.builder
@@ -771,15 +768,18 @@ def cargar_archivo(archivo):
                      .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
                      .getOrCreate())
 
-        # Determinar formato
         nombre = archivo.name
-        formato = archivo.type
+
+        # obtiene ".json", ".csv", o "" si no hay extensión
+        formato = os.path.splitext(nombre)[1] or ""
+        suffix = formato if formato in [".csv", ".json"] else ""
 
         # Guardar archivo temporalmente en una ruta válida
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
             ruta_temp = tmp_file.name
             tmp_file.write(archivo.read())
 
+        # Leer con Spark
         if nombre.endswith(".csv"):
             df_spark = spark.read \
                 .option("header", "true") \
@@ -790,11 +790,9 @@ def cargar_archivo(archivo):
         else:
             raise ValueError("Formato de archivo no soportado")
 
-        # Valores que PyDeequ no detecta como nulos
         valores_a_reemplazar = ["", "null", "NULL", "NaN"]
         df_spark = df_spark.replace(valores_a_reemplazar, None)
 
-        # Simular propiedades
         properties = {
             "driver": "pyspark.sql.DataFrame",
             "source": nombre,
@@ -804,6 +802,8 @@ def cargar_archivo(archivo):
         return spark, df_spark, properties
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"Error al cargar archivo: {e}")
         return None
 
