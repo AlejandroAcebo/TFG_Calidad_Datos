@@ -6,6 +6,7 @@ import traceback
 from time import sleep
 
 os.environ["SPARK_VERSION"] = "3.5"
+import findspark
 
 import pandas as pd
 from Analisis_Generalizados.integridad_referencial import analizar_integridad_referencial
@@ -36,7 +37,7 @@ def ui():
         spark, url, properties, archivo, tipo_analisis_seleccionado, nombre_indicador_seleccionado,\
         archivos, tabla_seleccionada, nombre_test_calidad
 
-
+    findspark.init()
     gestion_estilo_ui()
 
     if 'page' not in st.session_state:
@@ -733,6 +734,7 @@ def conectar_bd(tipo, user, password, server, database):
         print(f"Tipo de base de datos no soportado: {tipo}")
         return None
 
+
     conf = config_bd[tipo]
     port = conf["default_port"]
     jar_path = os.path.join(JARS_PATH, conf["jar_file"])
@@ -742,7 +744,6 @@ def conectar_bd(tipo, user, password, server, database):
         return None
 
     try:
-
         spark = (SparkSession.builder
                  .appName(f"{tipo.capitalize()} Connection with PySpark")
                  .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
@@ -889,7 +890,8 @@ def listar_tablas(spark, url, props, schema):
 
     query = f"(SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schema}') AS tablas"
     tablas_df = spark.read.jdbc(url, table=query, properties=props)
-    return tablas_df.rdd.flatMap(lambda x: x).collect()
+    tablas = [row[0] for row in tablas_df.collect()]
+    return tablas
 
 
 def listar_columnas(spark, url, props, tabla):
