@@ -40,9 +40,9 @@ def ui():
     gestion_estilo_ui()
 
     if 'page' not in st.session_state:
-        st.session_state.page = 'conexion_bd'
+        st.session_state.page = 'seleccion_conexion_inicio'
 
-    if st.session_state.page == 'conexion_bd':
+    if st.session_state.page == 'seleccion_conexion_inicio':
         col1, col2, _ = st.columns([3.5, 3.5, 3.5])
         with col2:
             with st.container(border=True):
@@ -84,6 +84,10 @@ def ui():
             # Creacion de una nueva pagina solo para ver la evaluación
             if st.button("📊 Ir a evaluación", on_click=ir_evaluacion, use_container_width=True):
                 st.session_state.page = 'evaluacion'
+            
+            if st.button("↩️ Volver a seleccionar conexión", on_click=ir_seleccion_conexion_inicio, use_container_width=True):
+                st.session_state.page = 'seleccion_conexion_inicio'
+
 
             # Botón para guardar los resultados como un JSON
             if "df_resultado" in st.session_state:
@@ -221,11 +225,12 @@ def ui():
             st.dataframe(st.session_state["df_resultado"], use_container_width=True)
 
     elif st.session_state.page == 'evaluacion':
-        st.markdown('<h2 class="subtitulos">EVALUACIÓN ANÁLISIS DE RESULTADOS</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="subtitulos">EVALUACIÓN - ANÁLISIS DE RESULTADOS</h2>', unsafe_allow_html=True)
         # Funcionalidad para ver histórico cargando múltiples archivos
         columna_izquierda, columna_derecha = st.columns([1,3], border=True)
         with columna_izquierda:
-            archivos = st.file_uploader("**Sube tus archivos**", type=["json"], accept_multiple_files=True)
+            archivos = st.file_uploader("**Seleccione análisis realizados previamente con la herramienta Daqlity**"
+                                        , type=["json"], accept_multiple_files=True)
             st.button("↩️ Volver atrás",on_click=ir_inicio,use_container_width=True)
         with columna_derecha:
             gestion_evolucion_analisis(archivos)
@@ -243,24 +248,39 @@ def gestion_estilo_ui():
     css = """
         <style>
             /* Ocultar elementos por defecto de Streamlit */
-            #MainMenu, header, footer {visibility: hidden;}
+            #MainMenu, header, footer {
+                visibility: hidden;
+            }
+        
             .block-container {
                 padding-top: 2rem;
             }
-
+        
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
+        
             /* Aplica a todo */
             * {
                 font-family: 'Poppins', sans-serif !important;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                box-sizing: border-box;
             }
-
-            /* Fondo y color texto */
+        
+            html, body {
+                line-height: 1.6 !important;
+                font-size: 16px !important;
+                background-color: #f5f7fa !important;
+                color: #545454 !important;
+                margin: 0;
+                padding: 0;
+            }
+        
+            /* Fondo de la app */
             .stApp {
                 background-color: #f5f7fa !important;
                 color: #545454;
             }
-
+        
             /* Botones */
             div.stButton > button {
                 background-color: #af6c58 !important;
@@ -272,18 +292,20 @@ def gestion_estilo_ui():
                 transition: background-color 0.3s ease !important;
                 font-family: 'Poppins', sans-serif !important;
             }
+        
             div.stButton > button:hover {
-                background-color: #8b4d3b!important;
+                background-color: #8b4d3b !important;
                 cursor: pointer !important;
             }
-
-            /* Labels e inputs */
+        
+            /* Inputs y etiquetas */
             label, input, select, textarea {
                 font-family: 'Poppins', sans-serif !important;
                 font-weight: 500 !important;
+                line-height: 1.5 !important;
             }
-
-            /* Personalizacion formulario */
+        
+            /* Contenedor de formulario */
             .st-form-box {
                 border: 2px solid #1E90FF;
                 border-radius: 10px;
@@ -292,7 +314,8 @@ def gestion_estilo_ui():
                 background-color: white;
                 box-shadow: 2px 2px 10px rgba(30,144,255,0.1);
             }
-            /* Personalizacion subtitulos */
+        
+            /* Subtítulos */
             .subtitulos {
                 display: block !important;
                 width: 100% !important;
@@ -303,8 +326,9 @@ def gestion_estilo_ui():
                 margin-bottom: 40px !important;
                 font-weight: 600 !important;
                 color: #545454 !important;
-        }
+            }
         </style>
+
         """
 
     st.markdown(css, unsafe_allow_html=True)
@@ -380,6 +404,13 @@ def ir_evaluacion():
     """
     st.session_state.page = "evaluacion"
 
+def ir_seleccion_conexion_inicio():
+    """
+    Cambia de pagina a la pagina de selección de fuente de datos
+    """
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.session_state.page = 'seleccion_conexion_inicio'
 
 def gestion_evolucion_analisis(archivos):
     """
@@ -902,7 +933,7 @@ def seleccion_conexion():
     if st.session_state["seleccionada_fuente"]:
         # Fuente de datos base de datos
         if opcion_fuente == "Base de datos":
-            gestion_conexion_bd()
+            gestion_seleccion_conexion()
         # Fuente de datos desde archivo CSV o JSON
         elif opcion_fuente in ["Archivo CSV", "Archivo JSON"]:
             gestion_conexion_archivos(opcion_fuente)
@@ -934,7 +965,7 @@ def gestion_conexion_archivos(opcion_fuente):
                 st.error("Hubo un error al cargar el archivo.")
 
 
-def gestion_conexion_bd():
+def gestion_seleccion_conexion():
     if not st.session_state["conectado_analisis"]:
         tipos_bd = {
             "SQL Server": "sqlserver",
