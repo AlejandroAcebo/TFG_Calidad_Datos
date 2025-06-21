@@ -170,6 +170,69 @@ https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.2.0.jre8/ms
 https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.1.4/mariadb-java-client-3.1.4.jar
 ```
 
+# Configuración Manual de TCP/IP en SQL Server mediante el Registro de Windows
+
+### 4.1. Abrir el Editor del Registro
+
+- Pulsa `Win + R` para abrir la ventana **Ejecutar**.  
+- Escribe `regedit` y presiona **Enter** para abrir el **Editor del Registro**.
+
+### 4.2. Navegar a la clave de SQL Server
+
+- En el panel izquierdo, navega a la siguiente ruta:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL Server\
+```
+
+- Dentro de esta clave encontrarás carpetas con nombres similares a:
+
+  - `MSSQL15.SQLEXPRESS`  
+  - `MSSQL16.MSSQLSERVER`
+
+- Identifica cuál corresponde a tu instancia de SQL Server.
+
+### 4.3. Configurar TCP/IP para la instancia
+
+- Entra en la ruta:
+
+```
+[Tu instancia]\MSSQLServer\SuperSocketNetLib\Tcp
+```
+
+Ejemplo para la instancia por defecto SQL Server 2022:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQLServer\SuperSocketNetLib\Tcp
+```
+
+- Modifica las siguientes entradas:
+
+| Clave            | Acción                                       |
+|------------------|---------------------------------------------|
+| `Enabled`        | Cambiar el valor a `1` (habilitar TCP/IP)  |
+| `TcpPort`        | Establecer el puerto a `1433`                |
+| `TcpDynamicPorts`| Dejar en blanco (vacío)                      |
+
+- Realiza estos cambios en la sección **IPAll**, y si existen, también en **IP1** o **IP2**.
+
+### 4.4. Cerrar el Editor del Registro
+
+- Cierra el editor de registro para guardar los cambios.
+
+### 4.5. Reiniciar el servicio de SQL Server
+
+- Pulsa `Win + R`, escribe `services.msc` y presiona **Enter**.  
+- En la ventana **Servicios**, busca el servicio de SQL Server correspondiente a tu instancia:
+
+  - Por ejemplo:  
+    `SQL Server (MSSQLSERVER)` para la instancia por defecto.  
+    `SQL Server (SQLEXPRESS)` para una instancia nombrada.
+
+- Haz clic derecho sobre el servicio y selecciona **Reiniciar**.
+
+---
+
 ### 5. Ejecutar la herramienta
 
 Para iniciar la aplicación, ejecuta el siguiente comando en el directorio de la herramienta:
