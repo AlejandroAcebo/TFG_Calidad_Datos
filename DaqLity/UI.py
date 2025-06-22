@@ -603,8 +603,9 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
 
 def gestion_ui_actualidad(test_config, valido):
     global tiempo_limite
-    tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**")
-    st.caption("***Ejemplo: 2006-01-01 00:00:00***")
+    tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**",
+                                  help = "Las fechas a analizar pueden tener formato YYYY-MM-DD o DD/MM/YYYY")
+    st.caption("***Ejemplo: 2006-01-01 o 01/01/2006***")
     if not tiempo_limite.strip():
         st.warning("La fecha límite no puede estar vacía.")
         valido = False
@@ -648,9 +649,10 @@ def gestion_ui_exactitud(test_config, valido):
     global tipo_exactitud, patron
     tipos_exactitud_opciones = ["Sintactica", "Semantica"]
     tipo_exactitud = st.selectbox("**Selecciona el tipo**", tipos_exactitud_opciones)
-    patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**")
-    st.caption("***Ejemplo sintáctica: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$***")
-    st.caption("***Ejemplo semántica: Main Office,Shipping***")
+    patron = st.text_input("**Escribe el patrón a filtrar o posibles valores separados por comas**",
+                           help = "El patrón hace diferencia entre mayúsculas y minúsculas (case sensitive)")
+    st.caption("***Ejemplo sintáctica de email: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$***")
+    st.caption("***Ejemplo semántica de tipo_envio: Main Office,Shipping***")
     if not patron.strip():
         st.warning("El campo 'patrón' no puede estar vacío.")
         valido = False

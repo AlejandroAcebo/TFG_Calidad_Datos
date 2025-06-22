@@ -5,6 +5,8 @@ from pyspark.sql import functions as F
 
 def analizar_credibilidad(spark,df,column,patron,tipo):
     global resultado
+    # Esto es para prevenir que haya espacios invisibles
+    patron = patron.strip()
     if (tipo == "Patron"):
         resultado = (
             AnalysisRunner(spark)
