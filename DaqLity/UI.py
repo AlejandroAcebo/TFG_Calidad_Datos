@@ -82,13 +82,13 @@ def ui():
 
         with col_izq:
             st.markdown('<h2 class="subtitulos">GESTIÓN VISUALIZACIÓN</h2>', unsafe_allow_html=True)
+
+            if st.button("🏠 Home", on_click=ir_seleccion_conexion_inicio, use_container_width=True):
+                st.session_state.page = 'seleccion_conexion_inicio'
+
             # Creacion de una nueva pagina solo para ver la evaluación
             if st.button("📊 Ir a evaluación", on_click=ir_evaluacion, use_container_width=True):
                 st.session_state.page = 'evaluacion'
-            
-            if st.button("↩️ Volver a seleccionar conexión", on_click=ir_seleccion_conexion_inicio, use_container_width=True):
-                st.session_state.page = 'seleccion_conexion_inicio'
-
 
             # Botón para guardar los resultados como un JSON
             if "df_resultado" in st.session_state:
@@ -175,6 +175,8 @@ def ui():
                 if st.button("💾 Guardar test", disabled= not valido,use_container_width=True):
                     st.session_state.setdefault("tests_seleccionados", []).append(test_config)
                     st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
+                    sleep(1)
+                    st.rerun()
             with col2:
                 eliminar = False
                 if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
@@ -412,6 +414,11 @@ def ir_seleccion_conexion_inicio():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.session_state.page = 'seleccion_conexion_inicio'
+    st.markdown("""
+            <script>
+            window.location.reload();
+            </script>
+        """, unsafe_allow_html=True)
 
 def gestion_evolucion_analisis(archivos):
     """
@@ -487,6 +494,7 @@ def gestion_ejecucion_test(resultado):
         num_decimales = test.get("num_decimales")
         columna_2 = test.get("columna_2")
         tiempo_limite = test.get("tiempo_limite")
+        tipo_actualidad = test.get("tipo_actualidad")
         try:
             # Determinamos si la fuente es BD o archivo
             if "conn" in st.session_state:
@@ -541,7 +549,7 @@ def gestion_ejecucion_test(resultado):
                     else:
                         st.warning("La integridad referencial no aplica sobre archivos simples.")
                 case "Actualidad":
-                    res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla)
+                    res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla,tipo_actualidad)
                     df_resultado = generar_df_modificado(spark, res,
                                                          "Verification", tipo, tabla, columna)
             print(df_resultado)
@@ -602,15 +610,20 @@ def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, 
 
 
 def gestion_ui_actualidad(test_config, valido):
-    global tiempo_limite
+    global tiempo_limite, tipo_actualidad
+
+    tipo_actualidad = st.selectbox("**Tipo actualidad**",["Fecha", "Fecha y hora"])
     tiempo_limite = st.text_input("**Introduce la fecha máxima que debería tener la columna**",
-                                  help = "Las fechas a analizar pueden tener formato YYYY-MM-DD o DD/MM/YYYY")
-    st.caption("***Ejemplo: 2006-01-01 o 01/01/2006***")
+                                  help = "Las fechas a analizar pueden tener formato: YYYY-MM-DD o DD/MM/YYYY o YYYY-MM-DD HH:mm:ss o "
+                                         "DD/MM/YYYY HH:mm:ss")
+    st.caption("***Ejemplo fecha: 2006-01-01 o 01/01/2006***")
+    st.caption("***Ejemplo fecha y hora: 2006-01-01 00:00:00 o 01/01/2006 00:00:00***")
     if not tiempo_limite.strip():
         st.warning("La fecha límite no puede estar vacía.")
         valido = False
     else:
         test_config["tiempo_limite"] = tiempo_limite
+        test_config['tipo_actualidad'] = tipo_actualidad
     return valido
 
 

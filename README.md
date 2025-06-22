@@ -79,6 +79,7 @@ pip install pyspark==3.5.0
 pip install --upgrade setuptools wheel
 pip install plotly
 pip install pydeequ
+pip install findspark
 ```
 
 Descarga de los conectores jdbc de bases relacionales: PostgreSQL, MySQL, SQL Server y MariaDB
@@ -157,6 +158,7 @@ pip install pyspark==3.5.0
 pip install --upgrade setuptools wheel
 pip install plotly
 pip install pydeequ
+pip install findspark
 ```
 
 Seguido instalar los archivos jar de los jdbc necesarios y meterlos en una carpeta llamada "jars" dentro del proyecto, que habrá que crear:
