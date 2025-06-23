@@ -522,10 +522,9 @@ def gestion_ejecucion_test(resultado):
                 df = spark.read.jdbc(url=url, table=f"{schema}.{tabla}", properties=properties)
             elif "df_archivo" in st.session_state:
                 spark, df = obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna)
-                no_spark_o_df = spark is None or df is None
 
-                if no_spark_o_df:
-                    continue  # O maneja el caso de forma diferente
+                if spark is None or df is None:
+                    continue
             else:
                 st.error("No hay fuente de datos conectada.")
                 continue
@@ -556,17 +555,24 @@ def gestion_ejecucion_test(resultado):
                     res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla,tipo_actualidad)
                     df_resultado = generar_df_modificado(spark, res,
                                                          "Verification", tipo, tabla, columna)
-            if df_resultado and df_resultado.count() > 0:
-                df_resultado_formateado = creacion_dataframe_personalizado(spark, df_resultado)
-                df_pandas = df_resultado_formateado.toPandas()
-                resultado = pd.concat([resultado, df_pandas], ignore_index=True)
-            else:
-                st.warning(f"No hay resultados para el test: {test}")
+            resultado = agregar_resultado(df_resultado, resultado, spark, test)
         except Exception as e:
             st.error(f"Error en la ejecución del test: {e}")
     if not resultado.empty:
         return resultado
     st.warning("No se generaron resultados para mostrar.")
+
+
+def agregar_resultado(df_resultado, resultado, spark, test):
+    global df_pandas
+    if df_resultado and df_resultado.count() > 0:
+        df_resultado_formateado = creacion_dataframe_personalizado(spark, df_resultado)
+        df_pandas = df_resultado_formateado.toPandas()
+        resultado = pd.concat([resultado, df_pandas], ignore_index=True)
+    else:
+        st.warning(f"No hay resultados para el test: {test}")
+    return resultado
+
 
 def obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna):
     # Verifica o crea la sesión Spark
