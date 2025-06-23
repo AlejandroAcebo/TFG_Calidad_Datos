@@ -4,14 +4,16 @@
         "columna": "ModifiedDate",
         "tabla": "Address",
         "schema": "SalesLT",
-        "tiempo_limite": "2006-01-01 00:00:00"
+        "tiempo_limite": "2006-01-01 00:00:00",
+        "tipo_actualidad": "Fecha y hora"
     },
     {
         "tipo": "Actualidad",
         "columna": "ModifiedDate",
         "tabla": "Customer",
         "schema": "SalesLT",
-        "tiempo_limite": "2006-01-01 00:00:00"
+        "tiempo_limite": "2006-01-01 00:00:00",
+        "tipo_actualidad": "Fecha y hora"
     },
     {
         "tipo": "Completitud",

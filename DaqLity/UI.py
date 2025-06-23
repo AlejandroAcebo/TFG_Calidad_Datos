@@ -220,8 +220,6 @@ def ui():
                 vacio = True
             descargar_conjunto_test(vacio)
 
-
-
         # Mostrar los resultados del test
         if "df_resultado" in st.session_state:
             st.write("### Resultado de pruebas:")
@@ -393,7 +391,6 @@ def gestion_estilo_ui():
     )
 
 
-
 def ir_inicio():
     """
     Cambia de pagina a la pagina de inicio
@@ -407,6 +404,7 @@ def ir_evaluacion():
     """
     st.session_state.page = "evaluacion"
 
+
 def ir_seleccion_conexion_inicio():
     """
     Cambia de pagina a la pagina de selección de fuente de datos
@@ -419,6 +417,7 @@ def ir_seleccion_conexion_inicio():
             window.location.reload();
             </script>
         """, unsafe_allow_html=True)
+
 
 def gestion_evolucion_analisis(archivos):
     """
@@ -794,8 +793,6 @@ def conectar_bd(tipo, user, password, server, database):
         return None
 
 
-from pyspark.sql import SparkSession, functions as F
-
 def cargar_archivo(archivo):
     """
     Carga archivos CSV o JSON usando Spark directamente, y limpia valores que no detecta PyDeequ como nulos.
@@ -853,7 +850,6 @@ def cargar_archivo(archivo):
         traceback.print_exc()
         print(f"Error al cargar archivo: {e}")
         return None
-
 
 
 def listar_schemas(spark, url, props):
@@ -936,13 +932,14 @@ def seleccion_conexion():
     Además, la herramienta se encarga de la definición de los diferentes parametros que más adelante se emplearán de
     acuerdo al tipo de fuente de datos seleccionada.
     """
-
     global archivo, spark, properties
+    archivo_csv = "Archivo CSV"
+    archivo_json = "Archivo JSON"
     if not st.session_state["conectado_analisis"]:
         st.markdown('<h3 class="subtitulos">FORMULARIO CONEXIÓN</h3>', unsafe_allow_html=True)
         st.session_state["opcion_fuente"] = st.selectbox(
             "**Selecciona la fuente de datos**",
-            ["Base de datos", "Archivo CSV", "Archivo JSON"]
+            ["Base de datos", archivo_csv, archivo_json]
         )
         st.session_state["seleccionada_fuente"] = True
     opcion_fuente = st.session_state["opcion_fuente"]
@@ -952,7 +949,7 @@ def seleccion_conexion():
         if opcion_fuente == "Base de datos":
             gestion_seleccion_conexion()
         # Fuente de datos desde archivo CSV o JSON
-        elif opcion_fuente in ["Archivo CSV", "Archivo JSON"]:
+        elif opcion_fuente in [archivo_csv, archivo_json]:
             gestion_conexion_archivos(opcion_fuente)
 
 
@@ -1041,7 +1038,6 @@ def descargar_resultados(df):
 
     if df is None:
         st.error("No hay resultados que descargar")
-
 
 
 def cargar_conjunto_test(archivo_test):
