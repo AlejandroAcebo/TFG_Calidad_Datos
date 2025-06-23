@@ -56,118 +56,12 @@ def ui():
         with col_izq:
             st.markdown('<h2 class="subtitulos">GESTIÓN VISUALIZACIÓN</h2>', unsafe_allow_html=True)
 
-            if st.button("🏠 Home", on_click=ir_seleccion_conexion_inicio, use_container_width=True):
-                st.session_state.page = 'seleccion_conexion_inicio'
-
-            # Creacion de una nueva pagina solo para ver la evaluación
-            if st.button("📊 Ir a evaluación", on_click=ir_evaluacion, use_container_width=True):
-                st.session_state.page = 'evaluacion'
-
-            # Botón para guardar los resultados como un JSON
-            if "df_resultado" in st.session_state:
-                df = st.session_state["df_resultado"]
-            else:
-                df = None
+            df = gestion_interfaz_col_izq()
             descargar_resultados(df)
 
         with col_medio:
             st.markdown('<h2 class="subtitulos">DEFINIR PLAN DE CALIDAD</h2>', unsafe_allow_html=True)
-            nombre_test_calidad = st.text_input("**Nombre del plan de calidad:**")
-            # Si hay conexión a base de datos
-            if "conn" in st.session_state:
-                spark, url, properties = st.session_state["conn"]
-                schemas = listar_schemas(spark, url, properties)
-                schema_seleccionado = st.selectbox("**Selecciona un esquema**", schemas)
-                tablas = listar_tablas(spark, url, properties, schema_seleccionado)
-                tabla_seleccionada = st.selectbox("**Selecciona una tabla**", tablas)
-                columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
-                tabla_nombre = tabla_seleccionada
-                esquema_nombre = schema_seleccionado
-
-            # Si hay un archivo CSV/JSON cargado
-            elif "df_archivo" in st.session_state:
-                columnas = st.session_state.get("columnas_archivo", [])
-                nombre_archivo = st.session_state["nombre_archivo"]
-                tabla_nombre = os.path.splitext(nombre_archivo)[0]
-                esquema_nombre = nombre_archivo
-
-            # Seleccionar columna y tipo de análisis que lo tienen ambos
-            columna = st.selectbox("**Selecciona una columna**", columnas)
-            tipo_analisis = st.selectbox("**Selecciona el tipo de análisis**", [
-                "Completitud", "Credibilidad", "Integridad Referencial",
-                "Exactitud", "Precision", "Actualidad"
-            ])
-
-            test_config = {
-                "tipo": tipo_analisis,
-                "columna": columna,
-                "tabla": tabla_nombre,
-                "schema": esquema_nombre
-            }
-
-            # Gestion de la interfaz de acuerdo al tipo de test seleccionado
-            valido = True
-
-            # Caso conexión a base de datos
-            if "conn" in st.session_state:
-                if all(x is not None for x in [spark, properties, url, esquema_nombre, tabla_seleccionada, tablas]):
-                    valido = gestion_tipo_test_ui(
-                        properties=properties,
-                        schema_seleccionado=esquema_nombre,
-                        spark=spark,
-                        tabla_seleccionada=tabla_seleccionada,
-                        tablas=tablas,
-                        test_config=test_config,
-                        tipo_analisis=tipo_analisis,
-                        url=url,
-                        valido=valido
-                    )
-                else:
-                    st.error("Faltan parámetros requeridos para el análisis en base de datos.")
-
-            # Caso archivo cargado
-            elif "df_archivo" in st.session_state:
-                if all(x is not None for x in [tabla_nombre, esquema_nombre, columnas]):
-                    valido = gestion_tipo_test_ui(
-                        properties=None,
-                        schema_seleccionado=esquema_nombre,
-                        spark=None,
-                        tabla_seleccionada=tabla_nombre,
-                        tablas=[],
-                        test_config=test_config,
-                        tipo_analisis=tipo_analisis,
-                        url=None,
-                        valido=valido
-                    )
-                else:
-                    st.error("Faltan parámetros requeridos para el análisis sobre archivo cargado.")
-
-            col1, col2 = st.columns(2)
-            with col1:
-                # Guardar test
-                if st.button("💾 Guardar test", disabled= not valido,use_container_width=True):
-                    st.session_state.setdefault("tests_seleccionados", []).append(test_config)
-                    st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
-                    sleep(1)
-                    st.rerun()
-            with col2:
-                eliminar = False
-                if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                    eliminar = True
-                if st.button("🗑️ Eliminar test anterior",disabled= not eliminar,use_container_width=True):
-                    if st.session_state["tests_seleccionados"]:
-                        st.session_state.setdefault("tests_seleccionados", []).pop()
-                        st.success("Ultimo test eliminado correctamente.")
-                    else:
-                        st.error("No hay tests guardados actualmente.")
-
-            #Botón ejecución de pruebas
-            if st.button("▶️ Ejecutar el conjunto de pruebas", use_container_width=True):
-                if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                    resultado = pd.DataFrame()
-                    st.session_state["df_resultado"] = gestion_ejecucion_test(resultado)
-                else:
-                    st.warning("No hay tests guardados.")
+            gestion_interfaz_col_medio()
 
         with col_der:
             st.markdown('<h2 class="subtitulos">GESTIÓN PLAN DE CALIDAD</h2>', unsafe_allow_html=True)
@@ -201,47 +95,7 @@ def ui():
     elif st.session_state.page == 'evaluacion':
         st.markdown('<h2 class="subtitulos">EVALUACIÓN - ANÁLISIS DE RESULTADOS</h2>', unsafe_allow_html=True)
         # Funcionalidad para ver histórico cargando múltiples archivos
-        columna_izquierda, columna_derecha = st.columns([1,3], border=True)
-        with columna_izquierda:
-            archivos = st.file_uploader("**Seleccione análisis realizados previamente con la herramienta Daqlity**"
-                                        , type=["json"], accept_multiple_files=True)
-            st.button("↩️ Volver atrás",on_click=ir_inicio,use_container_width=True)
-        with columna_derecha:
-            gestion_evolucion_analisis(archivos)
-
-
-def gestion_pagina_seleccion_conexion():
-    global spark, url, properties, df_pandas, columnas, tabla_nombre, esquema_nombre
-    col1, col2, _ = st.columns([3.5, 3.5, 3.5])
-    with col2:
-        with st.container(border=True):
-            default_session_state = {
-                "conectado_analisis": False,
-                "seleccionada_fuente": False,
-                "nombre_archivo": False,
-                "pruebas_ejecutadas": False,
-            }
-
-            # Si no estan inicializadas las st.session se inicializan
-            for key, default in default_session_state.items():
-                if key not in st.session_state:
-                    st.session_state[key] = default
-
-            # Selección tipo de fuente de datos, si no hay conexión todavía
-            seleccion_conexion()
-            # Selección de tabla y columna
-            if "conn" in st.session_state or "df_archivo" in st.session_state:
-
-                if "conn" in st.session_state:
-                    spark, url, properties = st.session_state["conn"]
-
-                elif "df_archivo" in st.session_state:
-                    df_spark = st.session_state["df_archivo"]
-                    df_pandas = df_spark.toPandas()
-                    columnas = df_pandas.columns.tolist()
-                    nombre_archivo = st.session_state["nombre_archivo"]
-                    tabla_nombre = os.path.splitext(nombre_archivo)[0]
-                    esquema_nombre = nombre_archivo
+        gestion_pagina_evaluacion()
 
 
 def gestion_estilo_ui():
@@ -259,13 +113,13 @@ def gestion_estilo_ui():
             #MainMenu, header, footer {
                 visibility: hidden;
             }
-        
+
             .block-container {
                 padding-top: 2rem;
             }
-        
+
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-        
+
             /* Aplica a todo */
             * {
                 font-family: 'Poppins', sans-serif !important;
@@ -273,7 +127,7 @@ def gestion_estilo_ui():
                 -moz-osx-font-smoothing: grayscale;
                 box-sizing: border-box;
             }
-        
+
             html, body {
                 line-height: 1.6 !important;
                 font-size: 16px !important;
@@ -282,13 +136,13 @@ def gestion_estilo_ui():
                 margin: 0;
                 padding: 0;
             }
-        
+
             /* Fondo de la app */
             .stApp {
                 background-color: #f5f7fa !important;
                 color: #545454;
             }
-        
+
             /* Botones */
             div.stButton > button {
                 background-color: #af6c58 !important;
@@ -300,19 +154,19 @@ def gestion_estilo_ui():
                 transition: background-color 0.3s ease !important;
                 font-family: 'Poppins', sans-serif !important;
             }
-        
+
             div.stButton > button:hover {
                 background-color: #8b4d3b !important;
                 cursor: pointer !important;
             }
-        
+
             /* Inputs y etiquetas */
             label, input, select, textarea {
                 font-family: 'Poppins', sans-serif !important;
                 font-weight: 500 !important;
                 line-height: 1.5 !important;
             }
-        
+
             /* Contenedor de formulario */
             .st-form-box {
                 border: 2px solid #1E90FF;
@@ -322,7 +176,7 @@ def gestion_estilo_ui():
                 background-color: white;
                 box-shadow: 2px 2px 10px rgba(30,144,255,0.1);
             }
-        
+
             /* Subtítulos */
             .subtitulos {
                 display: block !important;
@@ -396,6 +250,164 @@ def gestion_estilo_ui():
         """,
         unsafe_allow_html=True
     )
+
+
+def gestion_pagina_seleccion_conexion():
+    global spark, url, properties, df_pandas, columnas, tabla_nombre, esquema_nombre
+    _, col2, _ = st.columns([3.5, 3.5, 3.5])
+    with col2:
+        with st.container(border=True):
+            default_session_state = {
+                "conectado_analisis": False,
+                "seleccionada_fuente": False,
+                "nombre_archivo": False,
+                "pruebas_ejecutadas": False,
+            }
+
+            # Si no estan inicializadas las st.session se inicializan
+            for key, default in default_session_state.items():
+                if key not in st.session_state:
+                    st.session_state[key] = default
+
+            # Selección tipo de fuente de datos, si no hay conexión todavía
+            seleccion_conexion()
+            # Selección de tabla y columna
+            if "conn" in st.session_state or "df_archivo" in st.session_state:
+
+                if "conn" in st.session_state:
+                    spark, url, properties = st.session_state["conn"]
+
+                elif "df_archivo" in st.session_state:
+                    df_spark = st.session_state["df_archivo"]
+                    df_pandas = df_spark.toPandas()
+                    columnas = df_pandas.columns.tolist()
+                    nombre_archivo = st.session_state["nombre_archivo"]
+                    tabla_nombre = os.path.splitext(nombre_archivo)[0]
+                    esquema_nombre = nombre_archivo
+
+
+def gestion_pagina_evaluacion():
+    global archivos
+    columna_izquierda, columna_derecha = st.columns([1, 3], border=True)
+    with columna_izquierda:
+        archivos = st.file_uploader("**Seleccione análisis realizados previamente con la herramienta Daqlity**"
+                                    , type=["json"], accept_multiple_files=True)
+        st.button("↩️ Volver atrás", on_click=ir_inicio, use_container_width=True)
+    with columna_derecha:
+        gestion_evolucion_analisis(archivos)
+
+
+def gestion_interfaz_col_izq():
+    if st.button("🏠 Home", on_click=ir_seleccion_conexion_inicio, use_container_width=True):
+        st.session_state.page = 'seleccion_conexion_inicio'
+    # Creacion de una nueva pagina solo para ver la evaluación
+    if st.button("📊 Ir a evaluación", on_click=ir_evaluacion, use_container_width=True):
+        st.session_state.page = 'evaluacion'
+    # Botón para guardar los resultados como un JSON
+    if "df_resultado" in st.session_state:
+        df = st.session_state["df_resultado"]
+    else:
+        df = None
+    return df
+
+
+def gestion_interfaz_col_medio():
+    global nombre_test_calidad, spark, url, properties, tabla_seleccionada, columnas, tabla_nombre, esquema_nombre
+    nombre_test_calidad = st.text_input("**Nombre del plan de calidad:**")
+    # Si hay conexión a base de datos
+    if "conn" in st.session_state:
+        spark, url, properties = st.session_state["conn"]
+        schemas = listar_schemas(spark, url, properties)
+        schema_seleccionado = st.selectbox("**Selecciona un esquema**", schemas)
+        tablas = listar_tablas(spark, url, properties, schema_seleccionado)
+        tabla_seleccionada = st.selectbox("**Selecciona una tabla**", tablas)
+        columnas = listar_columnas(spark, url, properties, f"{schema_seleccionado}.{tabla_seleccionada}")
+        tabla_nombre = tabla_seleccionada
+        esquema_nombre = schema_seleccionado
+
+    # Si hay un archivo CSV/JSON cargado
+    elif "df_archivo" in st.session_state:
+        columnas = st.session_state.get("columnas_archivo", [])
+        nombre_archivo = st.session_state["nombre_archivo"]
+        tabla_nombre = os.path.splitext(nombre_archivo)[0]
+        esquema_nombre = nombre_archivo
+    # Seleccionar columna y tipo de análisis que lo tienen ambos
+    columna = st.selectbox("**Selecciona una columna**", columnas)
+    tipo_analisis = st.selectbox("**Selecciona el tipo de análisis**", [
+        "Completitud", "Credibilidad", "Integridad Referencial",
+        "Exactitud", "Precision", "Actualidad"
+    ])
+    test_config = {
+        "tipo": tipo_analisis,
+        "columna": columna,
+        "tabla": tabla_nombre,
+        "schema": esquema_nombre
+    }
+    # Gestion de la interfaz de acuerdo al tipo de test seleccionado
+    valido = True
+    # Caso conexión a base de datos
+    if "conn" in st.session_state:
+        if all(x is not None for x in [spark, properties, url, esquema_nombre, tabla_seleccionada, tablas]):
+            valido = gestion_tipo_test_ui(
+                properties=properties,
+                schema_seleccionado=esquema_nombre,
+                spark=spark,
+                tabla_seleccionada=tabla_seleccionada,
+                tablas=tablas,
+                test_config=test_config,
+                tipo_analisis=tipo_analisis,
+                url=url,
+                valido=valido
+            )
+        else:
+            st.error("Faltan parámetros requeridos para el análisis en base de datos.")
+
+    # Caso archivo cargado
+    elif "df_archivo" in st.session_state:
+        if all(x is not None for x in [tabla_nombre, esquema_nombre, columnas]):
+            valido = gestion_tipo_test_ui(
+                properties=None,
+                schema_seleccionado=esquema_nombre,
+                spark=None,
+                tabla_seleccionada=tabla_nombre,
+                tablas=[],
+                test_config=test_config,
+                tipo_analisis=tipo_analisis,
+                url=None,
+                valido=valido
+            )
+        else:
+            st.error("Faltan parámetros requeridos para el análisis sobre archivo cargado.")
+    col1, col2 = st.columns(2)
+    # Botones de guardar y eliminar tests
+    gestion_ui_guardar_eliminar_test(col1, col2, test_config, tipo_analisis, valido)
+    # Botón ejecución de pruebas
+    if st.button("▶️ Ejecutar el conjunto de pruebas", use_container_width=True):
+        if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+            resultado = pd.DataFrame()
+            st.session_state["df_resultado"] = gestion_ejecucion_test(resultado)
+        else:
+            st.warning("No hay tests guardados.")
+
+
+def gestion_ui_guardar_eliminar_test(col1, col2, test_config, tipo_analisis, valido):
+    with col1:
+        # Guardar test
+        if st.button("💾 Guardar test", disabled=not valido, use_container_width=True):
+            st.session_state.setdefault("tests_seleccionados", []).append(test_config)
+            st.success(f"Prueba '{tipo_analisis}' guardada correctamente.")
+            sleep(1)
+            st.rerun()
+    with col2:
+        eliminar = False
+        if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+            eliminar = True
+        if st.button("🗑️ Eliminar test anterior", disabled=not eliminar, use_container_width=True):
+            if st.session_state["tests_seleccionados"]:
+                st.session_state.setdefault("tests_seleccionados", []).pop()
+                st.success("Ultimo test eliminado correctamente.")
+            else:
+                st.error("No hay tests guardados actualmente.")
 
 
 def ir_inicio():
