@@ -522,7 +522,9 @@ def gestion_ejecucion_test(resultado):
                 df = spark.read.jdbc(url=url, table=f"{schema}.{tabla}", properties=properties)
             elif "df_archivo" in st.session_state:
                 spark, df = obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna)
-                if spark is None or df is None:
+                no_spark_o_df = spark is None or df is None or df.count() == 0
+
+                if no_spark_o_df:
                     continue  # O maneja el caso de forma diferente
             else:
                 st.error("No hay fuente de datos conectada.")
@@ -564,8 +566,7 @@ def gestion_ejecucion_test(resultado):
             st.error(f"Error en la ejecución del test: {e}")
     if not resultado.empty:
         return resultado
-    else:
-        st.warning("No se generaron resultados para mostrar.")
+    st.warning("No se generaron resultados para mostrar.")
 
 def obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna):
     # Verifica o crea la sesión Spark
