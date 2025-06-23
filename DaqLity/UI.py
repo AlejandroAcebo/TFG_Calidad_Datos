@@ -522,7 +522,7 @@ def gestion_ejecucion_test(resultado):
                 df = spark.read.jdbc(url=url, table=f"{schema}.{tabla}", properties=properties)
             elif "df_archivo" in st.session_state:
                 spark, df = obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna)
-                no_spark_o_df = spark is None or df is None or df.count() == 0
+                no_spark_o_df = spark is None or df is None
 
                 if no_spark_o_df:
                     continue  # O maneja el caso de forma diferente
