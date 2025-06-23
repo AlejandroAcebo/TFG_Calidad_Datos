@@ -25,6 +25,8 @@ import plotly.express as px
 import json
 from pyspark.sql import SparkSession
 
+paquete_deequ = "com.amazon.deequ:deequ:2.0.7-spark-3.5"
+paquete_spark = "spark.jars.packages"
 
 def ui():
     """
@@ -44,36 +46,7 @@ def ui():
         st.session_state.page = 'seleccion_conexion_inicio'
 
     if st.session_state.page == 'seleccion_conexion_inicio':
-        col1, col2, _ = st.columns([3.5, 3.5, 3.5])
-        with col2:
-            with st.container(border=True):
-                default_session_state = {
-                    "conectado_analisis": False,
-                    "seleccionada_fuente": False,
-                    "nombre_archivo": False,
-                    "pruebas_ejecutadas": False,
-                }
-
-                # Si no estan inicializadas las st.session se inicializan
-                for key, default in default_session_state.items():
-                    if key not in st.session_state:
-                        st.session_state[key] = default
-
-                # Selección tipo de fuente de datos, si no hay conexión todavía
-                seleccion_conexion()
-                # Selección de tabla y columna
-                if "conn" in st.session_state or "df_archivo" in st.session_state:
-
-                    if "conn" in st.session_state:
-                        spark, url, properties = st.session_state["conn"]
-
-                    elif "df_archivo" in st.session_state:
-                        df_spark = st.session_state["df_archivo"]
-                        df_pandas = df_spark.toPandas()
-                        columnas = df_pandas.columns.tolist()
-                        nombre_archivo = st.session_state["nombre_archivo"]
-                        tabla_nombre = os.path.splitext(nombre_archivo)[0]
-                        esquema_nombre = nombre_archivo
+        gestion_pagina_seleccion_conexion()
 
     elif st.session_state.page == 'inicio':
 
@@ -235,6 +208,40 @@ def ui():
             st.button("↩️ Volver atrás",on_click=ir_inicio,use_container_width=True)
         with columna_derecha:
             gestion_evolucion_analisis(archivos)
+
+
+def gestion_pagina_seleccion_conexion():
+    global spark, url, properties, df_pandas, columnas, tabla_nombre, esquema_nombre
+    col1, col2, _ = st.columns([3.5, 3.5, 3.5])
+    with col2:
+        with st.container(border=True):
+            default_session_state = {
+                "conectado_analisis": False,
+                "seleccionada_fuente": False,
+                "nombre_archivo": False,
+                "pruebas_ejecutadas": False,
+            }
+
+            # Si no estan inicializadas las st.session se inicializan
+            for key, default in default_session_state.items():
+                if key not in st.session_state:
+                    st.session_state[key] = default
+
+            # Selección tipo de fuente de datos, si no hay conexión todavía
+            seleccion_conexion()
+            # Selección de tabla y columna
+            if "conn" in st.session_state or "df_archivo" in st.session_state:
+
+                if "conn" in st.session_state:
+                    spark, url, properties = st.session_state["conn"]
+
+                elif "df_archivo" in st.session_state:
+                    df_spark = st.session_state["df_archivo"]
+                    df_pandas = df_spark.toPandas()
+                    columnas = df_pandas.columns.tolist()
+                    nombre_archivo = st.session_state["nombre_archivo"]
+                    tabla_nombre = os.path.splitext(nombre_archivo)[0]
+                    esquema_nombre = nombre_archivo
 
 
 def gestion_estilo_ui():
@@ -409,7 +416,7 @@ def ir_seleccion_conexion_inicio():
     """
     Cambia de pagina a la pagina de selección de fuente de datos
     """
-    for key in list(st.session_state.keys()):
+    for key in st.session_state.keys():
         del st.session_state[key]
     st.session_state.page = 'seleccion_conexion_inicio'
     st.markdown("""
@@ -505,7 +512,7 @@ def gestion_ejecucion_test(resultado):
                     spark = (SparkSession.builder
                              .appName("DaqLity")
                              .config("spark.sql.shuffle.partitions", "8")
-                             .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
+                             .config(paquete_spark, paquete_deequ)
                              .getOrCreate())
                     st.session_state["spark"] = spark
                 else:
@@ -515,9 +522,7 @@ def gestion_ejecucion_test(resultado):
                 if columna not in df.columns:
                     st.warning(f"La columna '{columna}' no existe en el archivo. Saltando test.")
                     continue
-                if tabla_2 and columna_2 and tabla_2 != tabla:
-                    st.warning("No se puede hacer integridad referencial entre archivos distintos.")
-                    continue
+
             else:
                 st.error("No hay fuente de datos conectada.")
                 continue
@@ -540,18 +545,14 @@ def gestion_ejecucion_test(resultado):
                     df_resultado = generar_df_modificado(spark, res,
                                                          "Analyzer", tipo, tabla, columna)
                 case "Integridad Referencial":
-                    if "conn" in st.session_state:
-                        df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
-                        res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
-                        df_resultado = generar_df_modificado(spark, res,
-                                                             "Verification", tipo, tabla, tabla_2, columna)
-                    else:
-                        st.warning("La integridad referencial no aplica sobre archivos simples.")
+                    df_2 = spark.read.jdbc(url=url, table=f"{schema}.{tabla_2}", properties=properties)
+                    res = analizar_integridad_referencial(spark, df, df_2, columna, columna_2)
+                    df_resultado = generar_df_modificado(spark, res,
+                                                         "Verification", tipo, tabla, tabla_2, columna)
                 case "Actualidad":
                     res = analizar_actualidad(spark, df, columna, tiempo_limite, tabla,tipo_actualidad)
                     df_resultado = generar_df_modificado(spark, res,
                                                          "Verification", tipo, tabla, columna)
-            print(df_resultado)
             if df_resultado and df_resultado.count() > 0:
                 df_resultado_formateado = creacion_dataframe_personalizado(spark, df_resultado)
                 df_pandas = df_resultado_formateado.toPandas()
@@ -760,7 +761,7 @@ def conectar_bd(tipo, user, password, server, database):
     try:
         spark = (SparkSession.builder
                  .appName(f"{tipo.capitalize()} Connection with PySpark")
-                 .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
+                 .config(paquete_spark, paquete_deequ)
                  .config("spark.jars", jar_path)
                  .getOrCreate())
 
@@ -809,7 +810,7 @@ def cargar_archivo(archivo):
             spark = (SparkSession.builder
                      .appName("📁 Carga desde Archivo")
                      .config("spark.sql.shuffle.partitions", "8")
-                     .config("spark.jars.packages", "com.amazon.deequ:deequ:2.0.7-spark-3.5")
+                     .config(paquete_spark, paquete_deequ)
                      .getOrCreate())
 
         nombre = archivo.name
