@@ -68,24 +68,7 @@ def ui():
 
             # Boton para cargar un conjunto de pruebas en formato JSON
             archivo_test = st.file_uploader("**Cargar plan de calidad**", type="json")
-            if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
-                cargar_conjunto_test(archivo_test)
-
-            if st.button("🧹 Eliminar todas las pruebas",use_container_width=True):
-                if st.session_state["tests_seleccionados"]:
-                    st.session_state["tests_seleccionados"].clear()
-                    st.success("Todas las pruebas han sido eliminadas.")
-                    sleep(1)
-                    st.rerun()
-                else:
-                    st.warning("El conjunto de pruebas esta vacio")
-
-            # Boton para descargar el conjunto de pruebas que se han guardado
-            if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
-                vacio = False
-            else:
-                vacio = True
-            descargar_conjunto_test(vacio)
+            gestion_interfaz_col_der(archivo_test)
 
         # Mostrar los resultados del test
         if "df_resultado" in st.session_state:
@@ -390,6 +373,25 @@ def gestion_interfaz_col_medio():
             st.warning("No hay tests guardados.")
 
 
+def gestion_interfaz_col_der(archivo_test):
+    if archivo_test is not None and not st.session_state.get("tests_cargados_flag", False):
+        cargar_conjunto_test(archivo_test)
+    if st.button("🧹 Eliminar todas las pruebas", use_container_width=True):
+        if st.session_state["tests_seleccionados"]:
+            st.session_state["tests_seleccionados"].clear()
+            st.success("Todas las pruebas han sido eliminadas.")
+            sleep(1)
+            st.rerun()
+        else:
+            st.warning("El conjunto de pruebas esta vacio")
+    # Boton para descargar el conjunto de pruebas que se han guardado
+    if "tests_seleccionados" in st.session_state and st.session_state["tests_seleccionados"]:
+        vacio = False
+    else:
+        vacio = True
+    descargar_conjunto_test(vacio)
+
+
 def gestion_ui_guardar_eliminar_test(col1, col2, test_config, tipo_analisis, valido):
     with col1:
         # Guardar test
@@ -519,22 +521,9 @@ def gestion_ejecucion_test(resultado):
                 spark, url, properties = st.session_state["conn"]
                 df = spark.read.jdbc(url=url, table=f"{schema}.{tabla}", properties=properties)
             elif "df_archivo" in st.session_state:
-                # Como no se carga
-                if "spark" not in st.session_state:
-                    spark = (SparkSession.builder
-                             .appName("DaqLity")
-                             .config("spark.sql.shuffle.partitions", "8")
-                             .config(paquete_spark, paquete_deequ)
-                             .getOrCreate())
-                    st.session_state["spark"] = spark
-                else:
-                    spark = st.session_state["spark"]
-                df = st.session_state["df_archivo"]
-
-                if columna not in df.columns:
-                    st.warning(f"La columna '{columna}' no existe en el archivo. Saltando test.")
-                    continue
-
+                spark, df = obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna)
+                if spark is None or df is None:
+                    continue  # O maneja el caso de forma diferente
             else:
                 st.error("No hay fuente de datos conectada.")
                 continue
@@ -578,6 +567,30 @@ def gestion_ejecucion_test(resultado):
     else:
         st.warning("No se generaron resultados para mostrar.")
 
+def obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna):
+    # Verifica o crea la sesión Spark
+    if "spark" not in st.session_state:
+        spark = (SparkSession.builder
+                 .appName("DaqLity")
+                 .config("spark.sql.shuffle.partitions", "8")
+                 .config(paquete_spark, paquete_deequ)
+                 .getOrCreate())
+        st.session_state["spark"] = spark
+    else:
+        spark = st.session_state["spark"]
+
+    # Obtiene el DataFrame desde session_state
+    df = st.session_state.get("df_archivo")
+    if df is None:
+        st.warning("No se encontró un DataFrame cargado desde archivo.")
+        return None, None
+
+    # Verifica la existencia de la columna
+    if columna not in df.columns:
+        st.warning(f"La columna '{columna}' no existe en el archivo. Saltando test.")
+        return None, None
+
+    return spark, df
 
 def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, tabla_seleccionada=None,
                          tablas=None, test_config=None, tipo_analisis=None, url=None, valido=True):
