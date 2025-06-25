@@ -599,6 +599,7 @@ def obtener_spark_y_df_archivo(paquete_spark, paquete_deequ, columna):
 
     return spark, df
 
+
 def gestion_tipo_test_ui(properties=None, schema_seleccionado=None, spark=None, tabla_seleccionada=None,
                          tablas=None, test_config=None, tipo_analisis=None, url=None, valido=True):
 
@@ -863,7 +864,9 @@ def cargar_archivo(archivo):
                 .option("delimiter", ";") \
                 .csv(ruta_temp)
         elif nombre.endswith(".json"):
-            df_spark = spark.read.json(ruta_temp)
+            df_spark = spark.read \
+                .option("multiline", "true") \
+                .json(ruta_temp)
         else:
             raise ValueError("Formato de archivo no soportado")
 

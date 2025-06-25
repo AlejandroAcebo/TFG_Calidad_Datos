@@ -1,0 +1,17 @@
+[
+  {
+    "Nombre indicador": "Calidad A",
+    "Porcentaje": 85,
+    "Fecha y hora de ejecución": "2025-06-25 12:00:00"
+  },
+  {
+    "Nombre indicador": "Calidad B",
+    "Porcentaje": 90,
+    "Fecha y hora de ejecución": "2025-06-25 12:00:00"
+  },
+  {
+    "Nombre indicador": "Calidad C",
+    "Porcentaje": 75,
+    "Fecha y hora de ejecución": "2025-06-25 12:00:00"
+  }
+]

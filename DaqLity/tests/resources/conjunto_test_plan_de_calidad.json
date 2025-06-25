@@ -1,0 +1,113 @@
+[
+    {
+        "tipo": "Actualidad",
+        "columna": "ModifiedDate",
+        "tabla": "Address",
+        "schema": "SalesLT",
+        "tiempo_limite": "2006-01-01 00:00:00",
+        "tipo_actualidad": "Fecha y hora"
+    },
+    {
+        "tipo": "Actualidad",
+        "columna": "ModifiedDate",
+        "tabla": "Customer",
+        "schema": "SalesLT",
+        "tiempo_limite": "2006-01-01 00:00:00",
+        "tipo_actualidad": "Fecha y hora"
+    },
+    {
+        "tipo": "Completitud",
+        "columna": "Title",
+        "tabla": "Customer",
+        "schema": "SalesLT"
+    },
+    {
+        "tipo": "Completitud",
+        "columna": "Weight",
+        "tabla": "Product",
+        "schema": "SalesLT"
+    },
+    {
+        "tipo": "Completitud",
+        "columna": "Size",
+        "tabla": "Product",
+        "schema": "SalesLT"
+    },
+    {
+        "tipo": "Integridad Referencial",
+        "columna": "ProductID",
+        "tabla": "SalesOrderDetail",
+        "schema": "SalesLT",
+        "columna_2": "ProductID",
+        "tabla_2": "Product"
+    },
+    {
+        "tipo": "Integridad Referencial",
+        "columna": "ProductCategoryID",
+        "tabla": "Product",
+        "schema": "SalesLT",
+        "columna_2": "ProductCategoryID",
+        "tabla_2": "ProductCategory"
+    },
+    {
+        "tipo": "Credibilidad",
+        "columna": "Phone",
+        "tabla": "Customer",
+        "schema": "SalesLT",
+        "patron": "^(?=(?:\\D*\\d){9,})[^\\p{L}]*$",
+        "tipo_credibilidad": "Patron"
+    },
+    {
+        "tipo": "Credibilidad",
+        "columna": "PostalCode",
+        "tabla": "Address",
+        "schema": "SalesLT",
+        "patron": "^[A-Za-z0-9 ]{5,6}$",
+        "tipo_credibilidad": "Patron"
+    },
+    {
+        "tipo": "Credibilidad",
+        "columna": "ProductNumber",
+        "tabla": "Product",
+        "schema": "SalesLT",
+        "patron": "^[A-Za-z]{2}-[A-Za-z0-9]{4}-.*$",
+        "tipo_credibilidad": "Patron"
+    },
+    {
+        "tipo": "Exactitud",
+        "columna": "EmailAddress",
+        "tabla": "Customer",
+        "schema": "SalesLT",
+        "patron": "[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$",
+        "tipo_exactitud": "Sintactica"
+    },
+    {
+        "tipo": "Exactitud",
+        "columna": "AddressType",
+        "tabla": "CustomerAddress",
+        "schema": "SalesLT",
+        "patron": "Main Office,Shipping",
+        "tipo_exactitud": "Semantica"
+    },
+    {
+        "tipo": "Precision",
+        "columna": "StandardCost",
+        "tabla": "Product",
+        "schema": "SalesLT",
+        "num_decimales": "2"
+    },
+    {
+        "tipo": "Precision",
+        "columna": "ListPrice",
+        "tabla": "Product",
+        "schema": "SalesLT",
+        "num_decimales": "2"
+    },
+    {
+        "tipo": "Precision",
+        "columna": "Weight",
+        "tabla": "Product",
+        "schema": "SalesLT",
+        "num_decimales": "2"
+    }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "Nombre de indicador":"Actualidad_Address_ModifiedDate",
+    "Valor":0.6266666667,
+    "Porcentaje":"62%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Actualidad_Customer_ModifiedDate",
+    "Valor":0.6363636364,
+    "Porcentaje":"63%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Completitud_Customer_Title",
+    "Valor":0.9917355372,
+    "Porcentaje":"99%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Completitud_Product_Weight",
+    "Valor":0.6711864407,
+    "Porcentaje":"67%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Completitud_Product_Size",
+    "Valor":0.7152542373,
+    "Porcentaje":"71%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Integridad Referencial_SalesOrderDetail_Product_ProductID",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Integridad Referencial_Product_ProductCategory_ProductCategoryID",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Credibilidad_Patron_Customer_Phone",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Credibilidad_Patron_Address_PostalCode",
+    "Valor":0.66,
+    "Porcentaje":"66%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Credibilidad_Patron_Product_ProductNumber",
+    "Valor":0.7220338983,
+    "Porcentaje":"72%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Exactitud_Sintactica_Customer_EmailAddress",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Exactitud_Semantica_CustomerAddress_AddressType",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Precision_Product_StandardCost",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Precision_Product_ListPrice",
+    "Valor":1.0,
+    "Porcentaje":"100%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  },
+  {
+    "Nombre de indicador":"Precision_Product_Weight",
+    "Valor":0.6711864407,
+    "Porcentaje":"67%",
+    "Fecha y hora de ejecución":"2025-06-23_12:32"
+  }
+]

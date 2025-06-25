@@ -18,3 +18,5 @@ openmetadata-docker/*
 DaqLity/venv
 *__pycache__
 DaqLity/jars
+*.pytest*
+
