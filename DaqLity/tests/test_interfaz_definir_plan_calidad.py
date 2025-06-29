@@ -1,6 +1,10 @@
+import datetime
 import os
 import subprocess
+
+from selenium.webdriver.chrome.options import Options
 from seleniumbase import BaseCase
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -19,7 +23,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         # Comprobacion de que cambia de pagina
         self.assert_exact_text("DEFINIR PLAN DE CALIDAD","#definir-plan-de-calidad")
@@ -97,7 +101,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         self.click("#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div:nth-child(3) > div > button")
         self.assert_exact_text("EVALUACIÓN - ANÁLISIS DE RESULTADOS", "#evaluacion-analisis-de-resultados")
@@ -111,7 +115,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         # Comprobacion de que cambia de pagina
         self.assert_exact_text("DEFINIR PLAN DE CALIDAD", "#definir-plan-de-calidad")
@@ -175,7 +179,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         # Comprobacion de que cambia de pagina
         self.assert_exact_text("DEFINIR PLAN DE CALIDAD", "#definir-plan-de-calidad")
@@ -193,7 +197,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         # Comprobacion de que cambia de pagina
         self.assert_exact_text("DEFINIR PLAN DE CALIDAD", "#definir-plan-de-calidad")
@@ -258,7 +262,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
 
-        self.sleep(5)
+        self.sleep(20)
 
         self.wait_for_element('input[data-testid="stFileUploaderDropzoneInput"]', timeout=10)
         path = os.path.abspath("tests/resources/conjunto_test_plan_de_calidad.json")
@@ -267,6 +271,155 @@ class PageContentTest(BaseCase):
         self.sleep(5)
         self.assert_element('[data-testid="stAlertContentSuccess"]', timeout=20)
         self.assert_text("Se han añadido 15 tests correctamente. Total: 15", '[data-testid="stAlertContentSuccess"]')
+
+    def test_descargar_plan_calidad(self) -> None:
+        self.driver.maximize_window()
+        self.open("http://localhost:8501/")
+        self.assert_exact_text("FORMULARIO CONEXIÓN", "#formulario-conexion")
+        self.type('[aria-label="**Host**"]', "localhost")
+        self.type('[aria-label="**Usuario**"]', "sa")
+        self.type('[aria-label="**Contraseña**"]', "root")
+        self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
+        self.click('[data-testid="stBaseButton-secondary"]')
+        self.sleep(20)
+
+        # Comprobacion de que cambia de pagina
+        self.assert_exact_text("DEFINIR PLAN DE CALIDAD", "#definir-plan-de-calidad")
+        self.type('[aria-label="**Nombre del plan de calidad:**"]', "PlanCalidadTestDescarga")
+
+        wait = WebDriverWait(self.driver, 10)
+        dropdown_xpath_esquema = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[3]/div'
+        dropdown_esquema = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_esquema)))
+        dropdown_esquema.click()
+
+        opcion_xpath_esquema = "//div[contains(text(),'SalesLT')]"
+        opcion_esquema = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_esquema)))
+        opcion_esquema.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_tabla = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[4]/div'
+        dropdown_tabla = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_tabla)))
+        dropdown_tabla.click()
+
+        opcion_xpath_tabla = "//div[contains(text(),'Customer')]"
+        opcion_tabla = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_tabla)))
+        opcion_tabla.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_columna = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[5]/div'
+        dropdown_columna = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_columna)))
+        dropdown_columna.click()
+
+        opcion_xpath_columna = "//div[contains(text(),'MiddleName')]"
+        opcion_columna = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_columna)))
+        opcion_columna.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_tipo_test = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[6]/div'
+        dropdown_tipo_test = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_tipo_test)))
+        dropdown_tipo_test.click()
+
+        opcion_xpath_tipo_test = "//div[contains(text(),'Completitud')]"
+        opcion_tipo_test = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_tipo_test)))
+        opcion_tipo_test.click()
+
+        self.sleep(1)
+
+        self.click(
+            "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div > div > button")
+        self.assert_element("//*[contains(., 'guardada correctamente')]")
+        self.sleep(3)
+
+        self.click("#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(3) > div > div:nth-child(4) > div > button")
+        self.sleep(10)
+
+        carpeta_descargas = self.get_downloads_folder()
+        archivo = "PlanCalidadTestDescarga.json"
+        ruta = os.path.join(carpeta_descargas, archivo)
+
+        assert os.path.exists(ruta), f"No se encuentra el archivo {archivo} en el directorio {carpeta_descargas}"
+
+    def test_descargar_resultados(self) -> None:
+        self.driver.maximize_window()
+        self.open("http://localhost:8501/")
+        self.assert_exact_text("FORMULARIO CONEXIÓN", "#formulario-conexion")
+        self.type('[aria-label="**Host**"]', "localhost")
+        self.type('[aria-label="**Usuario**"]', "sa")
+        self.type('[aria-label="**Contraseña**"]', "root")
+        self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
+        self.click('[data-testid="stBaseButton-secondary"]')
+        self.sleep(20)
+
+        # Comprobacion de que cambia de pagina
+        self.assert_exact_text("DEFINIR PLAN DE CALIDAD", "#definir-plan-de-calidad")
+        self.type('[aria-label="**Nombre del plan de calidad:**"]', "PlanCalidadTestDescarga")
+
+        wait = WebDriverWait(self.driver, 10)
+        dropdown_xpath_esquema = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[3]/div'
+        dropdown_esquema = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_esquema)))
+        dropdown_esquema.click()
+
+        opcion_xpath_esquema = "//div[contains(text(),'SalesLT')]"
+        opcion_esquema = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_esquema)))
+        opcion_esquema.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_tabla = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[4]/div'
+        dropdown_tabla = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_tabla)))
+        dropdown_tabla.click()
+
+        opcion_xpath_tabla = "//div[contains(text(),'Customer')]"
+        opcion_tabla = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_tabla)))
+        opcion_tabla.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_columna = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[5]/div'
+        dropdown_columna = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_columna)))
+        dropdown_columna.click()
+
+        opcion_xpath_columna = "//div[contains(text(),'MiddleName')]"
+        opcion_columna = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_columna)))
+        opcion_columna.click()
+
+        self.sleep(1)
+
+        dropdown_xpath_tipo_test = '//*[@id="root"]/div[1]/div[1]/div/div/div/section/div[1]/div/div[4]/div/div[2]/div/div[6]/div'
+        dropdown_tipo_test = wait.until(EC.element_to_be_clickable((By.XPATH, dropdown_xpath_tipo_test)))
+        dropdown_tipo_test.click()
+
+        opcion_xpath_tipo_test = "//div[contains(text(),'Completitud')]"
+        opcion_tipo_test = wait.until(EC.element_to_be_clickable((By.XPATH, opcion_xpath_tipo_test)))
+        opcion_tipo_test.click()
+
+        self.sleep(1)
+
+        self.click(
+            "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div > div > button")
+        self.assert_element("//*[contains(., 'guardada correctamente')]")
+        self.sleep(3)
+
+        self.click(
+            "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div:nth-child(8) > div > button")
+        self.sleep(3)
+        self.click(
+            "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div:nth-child(8) > div > button")
+        self.assert_element("//*[contains(@class, 'stDataFrame')]")
+        self.sleep(2)
+
+        self.click("#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div:nth-child(4) > div > button")
+        self.sleep(5)
+
+        carpeta_descargas = self.get_downloads_folder()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
+        archivo = f"resultado_analisis_{timestamp}.json"
+        ruta = os.path.join(carpeta_descargas, archivo)
+
+        assert os.path.exists(ruta), f"No se encuentra el archivo {archivo} en el directorio {carpeta_descargas}"
 
     @classmethod
     def tearDownClass(cls) -> None:

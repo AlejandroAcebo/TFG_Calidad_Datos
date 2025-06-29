@@ -19,7 +19,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         self.click(
             "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div:nth-child(3) > div > button")
@@ -45,7 +45,7 @@ class PageContentTest(BaseCase):
         self.type('[aria-label="**Contraseña**"]', "root")
         self.type('[aria-label="**Base de Datos**"]', "AdventureWorksLT2022")
         self.click('[data-testid="stBaseButton-secondary"]')
-        self.sleep(5)
+        self.sleep(20)
 
         self.click(
             "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(1) > div > div:nth-child(3) > div > button")

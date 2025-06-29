@@ -1122,7 +1122,7 @@ def descargar_conjunto_test(vacio):
     st.download_button(
         label="📤 Descargar plan de calidad",
         data=buffer,
-        file_name=nombre_test_calidad,
+        file_name=nombre_test_calidad+".json",
         mime="application/json",
         use_container_width = True,
         disabled=disponible
