@@ -406,6 +406,7 @@ class PageContentTest(BaseCase):
         self.click(
             "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div:nth-child(8) > div > button")
         self.sleep(3)
+        
         self.click(
             "#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e1cbzgzq4 > div > div.st-emotion-cache-13o7eu2.eertqu02 > div > div:nth-child(2) > div > div:nth-child(8) > div > button")
         self.assert_element("//*[contains(@class, 'stDataFrame')]")
