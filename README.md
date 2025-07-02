@@ -2,6 +2,15 @@
 
 En este trabajo se ha persiguido el desarrollo de una herramienta para analizar la calidad de los datos con objeto de que usuarios no expertos en la programación puedan poner bajo análisis la calidad de sus datos.
 
+# 📚 Índice
+
+1. [📁 Estructura del Proyecto](#-estructura-del-proyecto)  
+2. [DaqLity: Herramienta para el Análisis de la Calidad de los Datos](#daqlity-herramienta-para-el-análisis-de-la-calidad-de-los-datos)  
+3. [🖼️ Imágenes de la herramienta](#imágenes-de-la-herramienta)  
+4. [⚙️ Instalación y Puesta en Marcha](#️-instalación-y-puesta-en-marcha)  
+5. [🧪 DOCUMENTACIÓN: Tests de Calidad de Datos](#-documentación-tests-de-calidad-de-datos)
+
+
 ## 📁 Estructura del Proyecto
 
 ```plaintext
@@ -252,4 +261,39 @@ _http://localhost:8501_
 
 - **Network URL:** Esta URL permite acceder a la aplicación desde otro dispositivo que esté conectado a la misma red local. Por ejemplo:
 _http://192.168.X.X:8501_
+
+
+## 🧪 DOCUMENTACIÓN: Tests de Calidad de Datos
+
+A continuación se describe el significado y un ejemplo de cada tipo de test de calidad que dispone la herramienta:
+
+### ✅ 1. Completitud
+Verifica que no haya datos faltantes en uan columna determinada.  
+**Ejemplo:** Asegura que todas las filas tengan un valor en la columna `ID_Cliente`.
+
+### 🔍 2. Credibilidad
+Evalúa si una columna contiene valores dentro de los esperados.
+**Ejemplo:** Un código postal solo puede tener 5 cifras o 5 + 4 cifras.
+
+### 📅 3. Actualidad
+Comprueba si los datos están actualizados en función de un rango de tiempo esperado. Esta actualidad se puede analizar por fecha o fecha y hora.
+**Ejemplo:** Una fecha de última actualización mayor a 12 meses.
+
+### 🔗 4. Integridad Referencial
+Asegura que las relaciones entre tablas o entidades estén completas y sean coherentes.  
+**Ejemplo:** Un `ID_Producto` en la tabla de ventas debe existir en la tabla de productos.
+
+### 🧾 5. Exactitud Sintáctica
+Valida que los datos cumplan con el formato o patrón esperado.  
+**Ejemplo:** Correos electrónicos deben seguir el patrón `nombre@dominio.com`.
+
+### 🧠 6. Exactitud Semántica
+Evalúa si los valores son lógicos y tienen sentido en su contexto.  
+**Ejemplo:** El tipo de envío puede ser de un particular o de un profesional.
+
+### 🎯 7. Precisión
+Verifica el nivel de detalle o granularidad de los datos. 
+**Ejemplo:** El peso de un envío debe tener al menos 2 decimales.
+
+
 
