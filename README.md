@@ -5,10 +5,10 @@ En este trabajo se ha persiguido el desarrollo de una herramienta para analizar 
 # 📚 Índice
 
 1. [📁 Estructura del Proyecto](#-estructura-del-proyecto)  
-2. [DaqLity: Herramienta para el Análisis de la Calidad de los Datos](#daqlity-herramienta-para-el-análisis-de-la-calidad-de-los-datos)  
+2. [🛠️ DaqLity: Herramienta para el Análisis de la Calidad de los Datos](#daqlity-herramienta-para-el-análisis-de-la-calidad-de-los-datos)  
 3. [🖼️ Imágenes de la herramienta](#imágenes-de-la-herramienta)  
 4. [⚙️ Instalación y Puesta en Marcha](#️-instalación-y-puesta-en-marcha)  
-5. [🧪 DOCUMENTACIÓN: Tests de Calidad de Datos](#-documentación-tests-de-calidad-de-datos)
+5. [🧪 Documentación: Tests de Calidad de Datos](#-documentación-tests-de-calidad-de-datos)
 
 
 ## 📁 Estructura del Proyecto
@@ -30,7 +30,7 @@ TFG_Calidad_Datos/
 └── conjunto_test_plan_de_calidad.josn       # Conjunto de pruebas definidas en el plan de calidad recogidas en archivo JSON
 ```
 
-##  DaqLity: Herramienta para el Análisis de la Calidad de los Datos
+## 🛠️ DaqLity: Herramienta para el Análisis de la Calidad de los Datos
 
 **DaqLity** es una herramienta interactiva desarrollada como parte de un Trabajo de Fin de Grado (TFG) en Ingeniería Informática. Su objetivo principal es facilitar el análisis y la visualización de la calidad de conjuntos de datos, empleando tecnologías como Apache Spark y Streamlit.
 
@@ -38,7 +38,7 @@ La aplicación permite detectar posibles problemas de calidad en los datos, pres
 
 ---
 
-## Imágenes de la herramienta
+## 🖼️ Imágenes de la herramienta
 ![Formulario conexión fuente de datos](https://i.imgur.com/S8gJLGU.png)
 
 ![Interfaz principal herramienta](https://i.imgur.com/DKDGOxY.png)
@@ -263,7 +263,7 @@ _http://localhost:8501_
 _http://192.168.X.X:8501_
 
 
-## 🧪 DOCUMENTACIÓN: Tests de Calidad de Datos
+## 🧪 Documentación: Tests de Calidad de Datos
 
 A continuación se describe el significado y un ejemplo de cada tipo de test de calidad que dispone la herramienta:
 
